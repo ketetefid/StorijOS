@@ -1,2 +1,4 @@
 # SiaBerryOS
-A Linux Operating System for Using Siacoin on Raspberry Pi 3
+An Operating System for Using Siacoin on Raspberry Pi 3
+
+The OS already includes SiaBerry-WebUI.
