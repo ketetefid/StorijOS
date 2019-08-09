@@ -207,18 +207,18 @@ _dl_sync() {
 		     	# No need to dd the file again. Just mkswap it
 		     	sed -i "/SCswap/d" /etc/fstab &>/dev/null
 			mkswap ${mpoint}/SCswap && chmod 0600 ${mpoint}/SCswap
-			# We will enable this swap whenever we start hsd as it is specifically made for Sia.
+			# We will enable this swap whenever we start the daemon as it is specifically made for Sia.
 			#echo "${mpoint}/SCswap    none         swap    sw,pri=100                0       0" >>/etc/fstab
 		else
 			sed -i "/SCswap/d" /etc/fstab &>/dev/null
 			dd if=/dev/zero of=${mpoint}/SCswap bs=1M count=5000
 			mkswap ${mpoint}/SCswap && chmod 0600 ${mpoint}/SCswap
-			# We will enable this swap whenever we start hsd as it is specifically made for Sia.
+			# We will enable this swap whenever we start the daemon as it is specifically made for Sia.
 			#echo "${mpoint}/SCswap    none         swap    sw,pri=100                0       0" >>/etc/fstab
 		fi
 
-		# The address: http://storij.net/consensus.db
-		wget -c -o /wget-log -O ${mpoint}/consensus.db http://storij.net/sc-consensus.db > /dev/null 2>&1
+		# The address: https://storij.net/consensus.db
+		wget -c -o /wget-log -O ${mpoint}/consensus.db https://storij.net/sc-consensus.db > /dev/null 2>&1
 		if [ $? -ne 0 ]; then
                         eerror "Failed to download the blockchain."
                         return 1
@@ -275,8 +275,8 @@ _dl_sync() {
 			#echo "${mpoint}/SCswap    none         swap    sw,pri=100                0       0" >>/etc/fstab
 		fi
 
-		# The address: http://storij.net/scsoft.tar.gz
-		wget -c -o /wget-log -P ${mpoint} http://storij.net/scsoft.tar.gz > /dev/null 2>&1
+		# The address: https://storij.net/scsoft.tar.gz
+		wget -c -o /wget-log -P ${mpoint} https://storij.net/scsoft.tar.gz > /dev/null 2>&1
 		if [ $? -ne 0 ]; then
                         eerror "Failed to download the blockchain."
                         return 1
@@ -287,7 +287,10 @@ _dl_sync() {
 		tar -xf ${mpoint}/scsoft.tar.gz -C ${SCDIR} 
 		if [ $? -ne 0 ]; then
                         eerror "Failed to extract the blockchain."
-                        return 1
+                        echo "Failed to extract the layout. Probably not enough space. Redo the setup with a larger drive." > /wget-log
+                        echo "Failed to extract the layout. Probably not enough space. Redo the setup with a larger drive." >> /wget-log
+
+			return 1
                 fi
 		sync
 		rm -f ${mpoint}/scsoft.tar.gz
