@@ -1,0 +1,49 @@
+#!/sbin/openrc-run
+depend() {
+  need localmount
+  before sshd hsd net bootmisc hostname
+}
+
+start() {
+   ebegin "Sourcing parameters.txt"
+   # Sourcing the new host name
+   newhname=`/bin/sed -n "s/^\s*hostname\s*\=//p" /boot/storij/parameters.txt`
+   echo "hostname='$newhname'" > /etc/conf.d/hostname
+   
+   int_ip_new=`/bin/sed -n "s/^\s*int_ip\s*\=//p" /boot/storij/parameters.txt`
+   if [ $int_ip != $int_ip_new ]
+   then
+      # The user has requested a new IP change.
+      ebegin "Setting the IP change"
+      # Setting eth0 to dhcp so that we don't have to restart into dhcp again.
+      echo 'config_eth0="dhcp"' > /etc/conf.d/net
+      # We remove problematic init scripts from startup and add ipsetter.
+      # Stopping the services helps net.eth0 to be restarted more easily.
+      # Another reason is that these services might fail to restart after the IP change.
+      
+      # We write the enabled services to /boot/storij/initlist and ipsetter will read it.
+      list="fail2ban apache2 siad hsd XSCWalletUnlocker SCWalletUnlocker"
+      # We create the list here and ipsetter will delete it whenever it is run.
+      for init in $list
+      do
+	  if [ -f /etc/runlevels/default/$init ]
+	  then
+	      echo $init >> /boot/storij/initlist
+	      rc-update del $init default
+	  fi
+      done
+      rc-update add ipsetter default
+   fi
+   # fixing net device in miniupnpd, if needed
+   netdev=$(/bin/sed -n "s/^\s*net_dev\s*\=//p" /boot/storij/parameters.txt)
+   if eix -I miniupnpd&>/dev/null; then
+	      for item in /etc/miniupnpd/*; do
+	      	  /bin/sed -i "s,^\([ ]*EXT[ ]*=\).*,\1$netdev,g" ${item}
+	      done
+	      /bin/sed -i "s,^\([ ]*ext_ifname[ ]*=\).*,\1$netdev,g" /etc/miniupnpd/miniupnpd.conf
+	      /bin/sed -i "s,^\([ ]*listening_ip[ ]*=\).*,\1$netdev,g" /etc/miniupnpd/miniupnpd.conf
+   fi
+   /usr/local/bin/paramcopy && return 0
+   eend $?
+}
+

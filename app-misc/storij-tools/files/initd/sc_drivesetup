@@ -1,0 +1,405 @@
+#!/sbin/openrc-run
+#
+# Automatically formats the drive attached, mounts it under
+# the parent directory of {SCDIR}, creates siasoft directory, downloads
+# consensus.db or a pre-verified layout and puts it in the correct place
+# and then adds the siad daemon to the startup.
+#
+# Copyright (c) 2019 ketetefid <ketetefid@gmail.com>
+# License: GPL 3.0+
+# Although storij OS has been tested by the author and is intended to be helpful,
+# it comes with ABSOLUTELY NO WARRANTY, to the extent permitted by applicable law.
+
+description="Prepares the attached drive for running SC software"
+
+depend() {
+	need net localmount
+	after modules sysctl root expander
+}
+
+# The a's are for full bootstrapping and b's are for downloading a pre-verified blockchain
+step1="/boot/storij/SCSyncStep1"
+step2a="/boot/storij/SCSyncStep2a"
+step2b="/boot/storij/SCSyncStep2b"
+step3a="/boot/storij/SCSyncStep3a"
+step3b="/boot/storij/SCSyncStep3b"
+
+# get the mount point directory
+mpoint="$(dirname "${SCDIR}")"
+
+if [ -f /etc/storij/SC-DevSetup ]; then
+    # we get the device name of the chosen attached USB drive
+    devnameid=$(cat /etc/storij/SC-DevSetup)
+    for x in {a..z}
+    do
+	    pdevnameid=$(udevadm info --query=all --name=/dev/sd$x | grep ID_SERIAL= | cut -d '=' -f 2)
+	    if [ "$pdevnameid" == "$devnameid" ]; then
+		    devname=/dev/sd$x
+		    break
+	    fi
+    done
+fi
+
+function partitioner {
+    disk="$1"
+    dname=$(lsblk -nd -o model $disk | tr -d '[:space:]')
+    if [ $disklayout == "gpt" ]; then
+	# if gpt is requested we will simply make one big partition
+	echo One partition with gpt will be created.
+	parted -s "${disk}" -- mklabel $disklayout mkpart primary ext4 2048s 100% || return 1
+        sync
+        mkfs.ext4 -F "${disk}"1 -L ${dname}_p1 &>/dev/null || return 1
+        sync
+    else
+	# msdos was requested and according to the conditions a specific number of partitions will be created.
+	# preferred size of each partition in GiB (must be <=2048)
+	psize=2048
+	totalsize=$(fdisk -l | grep "Disk ${disk}" | awk {'print $5'})
+	echo "Partition Size is $psize GiB."
+	np=$(($totalsize/1024/1024/1024/$psize+1))
+	echo "No. of partitions will be ${np}."
+	echo Creating the msdos layout...
+	parted -s ${disk} -- mklabel msdos || return 1
+	sleep 2
+	if (( $np < 5 )); then
+	    echo $np primary partitions will be created.
+	    for i in $(seq 1 $(($np-1))); do
+		echo Creating partition no. $i
+		parted -s ${disk} -- mkpart primary ext4 $((1+($i-1)*psize*1024))MiB $((${psize}*1024*$i))MiB || return 1
+		sleep 2
+		echo Formatting partition no. $i
+		mkfs.ext4 -F ${disk}$i -L ${dname}_p$i &>/dev/null || return 1
+		sync
+	    done
+	    echo Creating partition no. $np
+	    parted -s ${disk} -- mkpart primary ext4 $(($psize*($np-1)*1024+1))MiB -1 || return 1
+	    echo Formatting partition no. $np
+	    mkfs.ext4 -F ${disk}$np -L ${dname}_p$np &>/dev/null || return 1
+	    sync
+	else
+	    echo 3 primary partitions and $(($np-3)) logical ones will be created.
+	    for i in $(seq 1 3); do
+		echo Creating partition no. $i
+		parted -s ${disk} -- mkpart primary ext4 $((1+($i-1)*psize*1024))MiB $((${psize}*1024*$i))MiB || return 1
+		sleep 2
+		echo Formatting partition no. $i
+		mkfs.ext4 -F ${disk}$i -L ${dname}_p$i &>/dev/null || return 1
+	    done
+	    parted -s ${disk} -- mkpart extended $(($psize*$i*1024))MiB -1 || return 1
+	    sleep 2
+	    for i in $(seq 4 $(($np-1))); do
+		echo Creating partition no. $i
+		parted -s ${disk} -- mkpart logical ext4 $((1+($i-1)*psize*1024))MiB $((${psize}*1024*$i))MiB || return 1
+		sleep 2
+		echo Formatting partition no. $i
+		mkfs.ext4 -F ${disk}$((i+1)) -L ${dname}_p$i &>/dev/null || return 1
+	    done
+	    echo Creating partition no. $np
+	    parted -s ${disk} -- mkpart logical ext4 $(($psize*($np-1)*1024+1))MiB -1 || return 1
+	    echo Formatting partition no. $np
+	    mkfs.ext4 -F ${disk}$((np+1)) -L ${dname}_p$np &>/dev/null || return 1
+	fi
+	sync
+    fi
+}
+
+
+_dl_sync() {
+	if [ ${setup_sc} == "1" ] || [ ${setup_sc} == "2" ]; then
+		# First boot. We need to format the attached drive and create partitions.
+		touch "$step1"
+		ewarn ""
+		ewarn "***********************************************************************"
+		ewarn "* Formatting the drive and partitioning it.                           *"
+		ewarn "* If this is not what you want, you have 20 seconds to power the      *"
+		ewarn "* device off and/or detach the drive, to keep its data.               *"
+		sleep 20
+                ewarn "***********************************************************************"
+		ewarn "* Proceeding with formatting the drive ...                            *"
+		ewarn "***********************************************************************"
+		ewarn ""
+		# We stop siad in case it is from an old installation;
+		/etc/init.d/siad stop
+		pkill siad
+		rc-update del siad default
+
+		# Remove any instance of host points in /etc/fstab, if there is any
+		if [ -f /boot/storij/SCHostPoints.txt ]; then
+		   while read -r hline || [[ -n "$hline" ]]; do
+		   	 hlpoint=$(dirname $hline)
+		         # We must ensure that another chain is not utilizing the partition/mountpoint
+                         if [ ! -f /boot/storij/XSCHostPoints.txt ] ; then
+                               umount $hlpoint
+                               sed -i "/${hlpoint//\//\\/}/d" /etc/fstab
+			 elif ! grep -q ${hlpoint} /boot/storij/XSCHostPoints.txt; then
+                               umount $hlpoint
+                               sed -i "/${hlpoint//\//\\/}/d" /etc/fstab
+		         fi
+		   done < /boot/storij/SCHostPoints.txt
+
+		   # We also delete the list of hosts
+		   rm /boot/storij/SCHostPoints.txt &>/dev/null
+		fi
+
+		# Then unmount the drive (if mounted) and remove it from fstab
+		umount $mpoint
+		sed -i "/${mpoint//\//\\/}/d" /etc/fstab &>/dev/null
+
+		# we want the user to resetup the auto-unlock
+		sed -i 's,^\([ ]*sc_auto_unlock[ ]*=\).*,\1'0',g' /boot/storij/parameters.txt
+
+		# do the partitioning
+		partitioner "${devname}"
+		if [ $? -ne 0 ]; then
+                        eerror "Failed to format the drive and partition it."
+			rm -f "$step1"
+                        return 1
+		fi
+		sync
+
+		ewarn "***********************************************************************"
+		ewarn "* The drive was formatted and one partition was created.               "
+		ewarn "***********************************************************************"
+
+		# Change setup_sc to 0 in /boot/storij/parameters.txt
+		sed -i 's,^\([ ]*setup_sc[ ]*=\).*,\1'0',g' /boot/storij/parameters.txt
+		rm -f "$step1"
+		if [ ${setup_sc} == "1" ]; then
+			touch "${step2a}"
+		else
+			touch "${step2b}"
+		fi
+			
+	fi
+
+	if [ -f "${step2a}" ]; then
+                ewarn "***********************************************************************"
+                ewarn "* Downloading or continuing the download of consensus.db.	      "
+		ewarn "* Please wait as the size of download might be huge. You can monitor   "
+		ewarn "* the progress by sshing as root and executing:  tail -f /wget-log*    "
+		ewarn "***********************************************************************"
+
+		# Mount the drive to the upper directory so that scsoft folder will be inside the drive.
+		mount "${devname}"1 "${mpoint}"
+		sync
+		
+		# We check if ${SIAUSR} exists.	If not,	create it.
+		if id "${SIAUSR}" >/dev/null 2>&1; then
+                   :
+		else
+			/usr/sbin/useradd -m -G users,wheel -s /bin/bash ${SIAUSR}
+		fi
+
+		# Check if ${SCDIR} exists. If not, create it inside the drive. We had to wait for the mount.
+		if [ ! -d "${SCDIR}" ]; then
+                   mkdir -p "${SCDIR}"
+                fi
+		chown -R ${SIAUSR}:${SIAUSR} "${SCDIR}"
+
+		# Delete any old wget logs due to unsuccessfull attempts
+		rm -f /wget-log*
+
+		# Create a 5G swap file on the formatted drive
+		echo "Creating plenty of virtual memory. Please wait as it might take several minutes." > /wget-log
+		echo "Creating plenty of virtual memory. Please wait as it might take several minutes." >> /wget-log
+		# Check if we have already done this correctly
+		if [ -f ${mpoint}/SCswap ] && (( $(stat -c%s ${mpoint}/SCswap) == 5242880000 )); then
+		     	# No need to dd the file again. Just mkswap it
+		     	sed -i "/SCswap/d" /etc/fstab &>/dev/null
+			mkswap ${mpoint}/SCswap && chmod 0600 ${mpoint}/SCswap
+			# We will enable this swap whenever we start hsd as it is specifically made for Sia.
+			#echo "${mpoint}/SCswap    none         swap    sw,pri=100                0       0" >>/etc/fstab
+		else
+			sed -i "/SCswap/d" /etc/fstab &>/dev/null
+			dd if=/dev/zero of=${mpoint}/SCswap bs=1M count=5000
+			mkswap ${mpoint}/SCswap && chmod 0600 ${mpoint}/SCswap
+			# We will enable this swap whenever we start hsd as it is specifically made for Sia.
+			#echo "${mpoint}/SCswap    none         swap    sw,pri=100                0       0" >>/etc/fstab
+		fi
+
+		# The address: http://storij.net/consensus.db
+		wget -c -o /wget-log -O ${mpoint}/consensus.db http://storij.net/sc-consensus.db > /dev/null 2>&1
+		if [ $? -ne 0 ]; then
+                        eerror "Failed to download the blockchain."
+                        return 1
+                fi		
+
+		rm -f /wget-log*
+		rm -f "${step2a}"
+                touch "${step3a}"
+	fi
+
+	if [ -f "${step2b}" ]; then
+                ewarn "***********************************************************************"
+                ewarn "* Downloading or continuing the download of pre-verifed blockchain.    "
+		ewarn "* Please wait as the size of download might be huge. You can monitor   "
+		ewarn "* the progress by sshing as root and executing:  tail -f /wget-log*    "
+		ewarn "***********************************************************************"
+
+		# Mount the drive to the upper directory so that scsoft folder will be inside the drive.
+		mount "${devname}"1 "${mpoint}"
+		sync
+		
+		# We check if ${SIAUSR} exists.	If not,	create it.
+		if id "${SIAUSR}" >/dev/null 2>&1; then
+                   :
+		else
+			/usr/sbin/useradd -m -G users,wheel -s /bin/bash ${SIAUSR}
+		fi
+
+		# Check if ${SCDIR} exists. If not, create it inside the drive. We had to wait for the mount.
+		if [ ! -d "${SCDIR}" ]; then
+                   mkdir -p "${SCDIR}"
+                fi
+		chown -R ${SIAUSR}:${SIAUSR} "${SCDIR}"
+
+		# Delete any old wget logs due to unsuccessfull attempts
+		rm -f /wget-log*
+
+		# Create a 5G swap file on the formatted drive
+		echo "Creating plenty of virtual memory. Please wait as it might take several minutes." > /wget-log
+		echo "Creating plenty of virtual memory. Please wait as it might take several minutes." >> /wget-log
+
+		# Check if we have already done this correctly
+		if [ -f ${mpoint}/SCswap ] && (( $(stat -c%s ${mpoint}/SCswap) == 5242880000 )); then
+		     	# No need to dd the file again. Just mkswap it
+		     	sed -i "/SCswap/d" /etc/fstab &>/dev/null
+			mkswap ${mpoint}/SCswap && chmod 0600 ${mpoint}/SCswap
+			# We will enable this swap whenever we start hsd as it is specifically made for Sia.
+			#echo "${mpoint}/SCswap    none         swap    sw,pri=100                0       0" >>/etc/fstab
+		else
+			sed -i "/SCswap/d" /etc/fstab &>/dev/null
+			dd if=/dev/zero of=${mpoint}/SCswap bs=1M count=5000
+			mkswap ${mpoint}/SCswap && chmod 0600 ${mpoint}/SCswap
+			# We will enable this swap whenever we start hsd as it is specifically made for Sia.
+			#echo "${mpoint}/SCswap    none         swap    sw,pri=100                0       0" >>/etc/fstab
+		fi
+
+		# The address: http://storij.net/scsoft.tar.gz
+		wget -c -o /wget-log -P ${mpoint} http://storij.net/scsoft.tar.gz > /dev/null 2>&1
+		if [ $? -ne 0 ]; then
+                        eerror "Failed to download the blockchain."
+                        return 1
+                fi
+		sync
+		echo "Extracting the layout. Please wait." > /wget-log
+		echo "Extracting the layout. Please wait." >> /wget-log
+		tar -xf ${mpoint}/scsoft.tar.gz -C ${SCDIR} 
+		if [ $? -ne 0 ]; then
+                        eerror "Failed to extract the blockchain."
+                        return 1
+                fi
+		sync
+		rm -f ${mpoint}/scsoft.tar.gz
+		rm -f /wget-log*
+		rm -f "${step2b}"
+                touch "${step3b}"
+	fi
+
+	if [ -f "${step3a}" ]; then
+	     	ewarn "***********************************************************************"
+		ewarn "* Consensus.db has been downloaded. We will update Sia now.            "
+		ewarn "* Then, we will go for creating Sia structure in ${SCDIR}              "
+		ewarn "***********************************************************************"
+
+		emerge sia &>/dev/null
+		if [ $? -ne 0 ]; then
+                        eerror "Failed to update Sia. Check your network and restup Sia."
+                        return 1
+                fi		
+
+		ewarn "************************** Sia was updated. ***************************"
+		#/etc/init.d/siad start
+		#sleep 30
+
+		# hsd sometimes becomes a d!ck. We wait for it to stop...
+		#/etc/init.d/hsd stop
+		#sleep 60
+		#pkill hsd
+		# We won't start the service. Creating the directory is enough.
+		ewarn "***********************************************************************"
+		ewarn "* Moving the database to its location. Please wait...                  "
+		sync
+		sleep 2
+		# Copy or move the database to $SCDIR
+		mkdir "${SCDIR}"/consensus
+		mv ${mpoint}/consensus.db "${SCDIR}"/consensus/
+		chown -R ${SIAUSR}:${SIAUSR} "${SCDIR}"
+		ewarn "***********************************************************************"
+		ewarn "* Consensus.db was placed and everything was set. Keep your drive      "
+		ewarn "* attached. In the next boot, Sia will start syncing and you can       "
+		ewarn "* monitor it by logging in as ${SIAUSR}. Then, you can create a wallet "
+		ewarn "* or import your seed. The Sia structure will be on your drive.        "
+		ewarn "* Have fun!                                                            "
+		ewarn "***********************************************************************"
+
+		rm -f "${step3a}"
+
+		# Remove any instance of $mpoint in /etc/fstab, if there is any
+		sed -i "/${mpoint//\//\\/}/d" /etc/fstab
+
+		# adding the drive to /etc/fstab
+		diskid=`blkid -s UUID -o value "${devname}"1`
+		echo "UUID=${diskid}    ${mpoint}   ext4    defaults,noatime  0  1" >>/etc/fstab
+		/sbin/rc-update add siad default
+
+
+		sync
+		umount ${mpoint} || ewarn "The drive was NOT unmounted successfully."
+		sleep 5
+                rc-update --update &>/dev/null
+		# then reboot, but don't do it in the context of this, an init script
+		#init 6
+		nohup bash -c 'reboot' &>/dev/null&
+	fi
+
+	if [ -f "${step3b}" ]; then
+	     	ewarn "***********************************************************************"
+		ewarn "* The pre-verified blockchain layout has been downloaded.              "
+		ewarn "* We will update Sia now.                                              "
+		ewarn "***********************************************************************"
+
+		emerge sia &>/dev/null
+		if [ $? -ne 0 ]; then
+                        eerror "Failed to update Sia. Check your network and restup Sia."
+                        return 1
+                fi		
+		
+		ewarn "************************** Sia was updated. ***************************"
+
+		chown -R ${SIAUSR}:${SIAUSR} "${SCDIR}"
+		ewarn "***********************************************************************"
+		ewarn "* The blockchain layout was set. In the next boot you can immediately  "
+		ewarn "* initialize your wallet and start hosting. Have fun!                  "
+		ewarn "***********************************************************************"
+
+		rm -f "${step3b}"
+
+		# Remove any instance of $mpoint in /etc/fstab, if there is any
+		sed -i "/${mpoint//\//\\/}/d" /etc/fstab
+
+		# adding the drive to /etc/fstab
+		diskid=`blkid -s UUID -o value "${devname}"1`
+		echo "UUID=${diskid}    ${mpoint}   ext4    defaults,noatime  0  1" >>/etc/fstab
+		/sbin/rc-update add siad default
+		if [ ${sc_auto_unlock} == "1" ]; then
+		   /sbin/rc-update add SCWalletUnlocker default
+		fi
+
+		sync
+		umount ${mpoint} || ewarn "The drive was NOT unmounted successfully."
+		sleep 3
+                rc-update --update &>/dev/null
+		# then reboot, but don't do it in the context of this, an init script
+
+		nohup bash -c 'reboot' &>/dev/null&
+	fi
+	return 0
+}
+
+start() {
+   	ebegin "Preparing the attached drive for use with Sia software..."
+   	_dl_sync
+	eend $?
+}
+

@@ -1,0 +1,83 @@
+#!/sbin/openrc-run
+#
+# Automatically sets a static IP from the dhcp data
+#
+# Copyright (c) 2017 ketetefid <ketetefid@gmail.com>
+# License: GPL 3.0+
+# Although storij OS has been tested by the author and is intended to be helpful,
+# it comes with ABSOLUTELY NO WARRANTY, to the extent permitted by applicable law.
+
+description="Automatically sets a static IP for storij according to the parameter int_ip"
+
+depend() {
+	need localmount copy_parameters
+	after modules sysctl root expander
+}
+
+ip_setter() {
+	# If net.eth0 is up through dhcp, we skip setting dhcp again and restarting net.eth0
+	if ! grep -q 'config_eth0[[:space:]]*=[[:space:]]*"dhcp"' /etc/conf.d/net; then
+	   if ! echo 'config_eth0="dhcp"' > /etc/conf.d/net && /etc/init.d/net.eth0 restart &>/dev/null; then
+		eerror "Failed to get an IP from the router. Please check the connections."
+		#eerror "The system will reboot in 20 seconds."
+		#nohup bash -c 'reboot' &>/dev/null&
+		return 1
+	   fi
+	fi
+	   
+	sleep 1
+	dnsaddr=`grep -i /etc/resolv.conf -e nameserver | awk '{print $2}'`
+	gateway=$(/bin/ip route | awk '/default/ { print $3 }')
+	ip_dhcp=`ifconfig | grep -A 1 'eth0' | tail -1 | awk '{print $2}'`
+	netmask=`ifconfig | grep -A 1 'eth0' | tail -1 | awk '{print $4}'`
+	if [ ${int_ip} == "auto" ]; then
+		 ip_static=${ip_dhcp%.*}.100
+	else
+		 last_octet=`echo $int_ip | cut -d . -f 4`
+		 ip_static=${ip_dhcp%.*}.$last_octet
+	fi
+	echo "config_eth0="'"'"$ip_static netmask $netmask"'"' > /etc/conf.d/net
+	echo "routes_eth0="'"'"default via $gateway"'"'>> /etc/conf.d/net
+	echo "dns_servers_eth0="'"'"$dnsaddr"'"' >> /etc/conf.d/net
+
+	# sourcing parameters into rc.conf
+	/usr/local/bin/paramcopy
+
+	# wait for the chaos to settle down :))
+	sleep 1
+	
+	/etc/init.d/net.eth0 restart
+
+	# we enable and start the services in /boot/storij/initlist again
+	list=`cat /boot/storij/initlist`
+	for init in $list
+	do
+		rc-update add $init default
+		/etc/init.d/$init start
+	done
+
+	# If everything was OK, we would proceed. Otherwise, abort.
+	if [ $? -ne 0 ]; then
+		eerror "ipsetter failed. The process will be repeated."
+		return 1
+	fi		
+
+	# We delete the initlist created by copy_parameters here
+	echo "" > /boot/storij/initlist &> /dev/null
+
+	# Substituting int_ip with the new, correct value
+	sed -i 's,^\([ ]*int_ip[ ]*=\).*,\1'$ip_static',g' /boot/storij/parameters.txt
+	
+	# Deleting ipsetter from the startup as the IP information is now fully
+	# written to /etc/conf.d/net and we have started and enabled the services.
+	rc-update del ipsetter default
+
+	return 0
+}
+
+start() {
+     	ebegin "Setting a static IP automatically"
+   	ip_setter
+	eend $?
+}
+

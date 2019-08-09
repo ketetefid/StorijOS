@@ -1,0 +1,24 @@
+#!/sbin/openrc-run
+depend() {
+  need localmount net docker
+  after bootmisc
+  use logger
+}
+
+PIDFILE=/var/run/sonm-node.pid
+SONM=/usr/bin/sonmnode_linux_x86_64
+SONMCONFIG=/etc/sonm/node.yaml
+LOG=/var/log/sonm/node.log
+start() {
+	ebegin "Starting sonm-node daemon"
+	start-stop-daemon --start \
+  	--exec $SONM --background --make-pidfile --pidfile $PIDFILE \
+	--stdout $LOG --stderr $LOG -P -w 10000 -- --config $SONMCONFIG
+  	eend $?
+}
+
+stop() {
+        ebegin "Stopping sonm-node daemon"
+        start-stop-daemon --stop --pidfile ${PIDFILE}
+        eend $? "Failed to stop sonm-node daemon"
+}

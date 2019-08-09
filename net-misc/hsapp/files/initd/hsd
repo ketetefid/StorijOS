@@ -1,0 +1,82 @@
+#!/sbin/openrc-run
+depend() {
+  need localmount net
+  after bootmisc
+  use logger
+}
+extra_commands="fstart fstop"
+
+start() {
+	ebegin "Starting hsd daemon"
+	# Sourcing parameters.txt
+	/usr/local/bin/paramcopy
+	# We check if ${SIAUSR} exists. If not, create it.
+	if id "${SIAUSR}" >/dev/null 2>&1; then
+                :
+	else
+	       /usr/sbin/useradd -m -G users,wheel,audio -s /bin/bash ${SIAUSR}
+	fi
+	if [ ! -d "${XSCDIR}" ]; then
+	  mkdir -p ${XSCDIR}
+	fi
+	chown ${SIAUSR}:${SIAUSR} -R ${XSCDIR}
+	mpoint="$(dirname "${XSCDIR}")"
+	swapon -p 100 ${mpoint}/XSCswap &> /dev/null
+	start-stop-daemon --background --start \
+  	--exec ${SIADEXEC} -u ${SIAUSR} --make-pidfile --pidfile ${PIDFILE} \
+	-- --modules cghrtw --hyperspace-directory ${XSCDIR} --rpc-addr ${xsc_rpc_port} --host-addr ${xsc_host_port}
+  	eend $?
+}
+
+stop() {
+        ebegin "Stopping hsd daemon"
+	# If we want to restup XSC, just remove it from startup NOW as it will fail to stop later
+	# we don't source the parameters file directly
+	setupxsc=$(grep -P 'setup_xsc\s*=\.*' /boot/storij/parameters.txt |cut -d '=' -f 2)
+	if [ ${setupxsc} == "1" ] || [ ${setupxsc} == "2" ]; then
+	     	rc-update del hsd default
+		rc-update del XSCWalletUnlocker default
+	fi
+	# ensuring that hsd will finally stop
+        start-stop-daemon --stop --exec ${SIACEXE} stop \
+	--pidfile ${PIDFILE} -d ${XSCDIR} || hsc stop
+        eend $? "Failed to stop hsd daemon"
+}
+
+fstart() {
+	ebegin "Starting hsd daemon"
+	# Sourcing parameters.txt
+	/usr/local/bin/paramcopy
+	# We check if ${SIAUSR} exists. If not, create it.
+	if id "${SIAUSR}" >/dev/null 2>&1; then
+                :
+	else
+	       /usr/sbin/useradd -m -G users,wheel,audio -s /bin/bash ${SIAUSR}
+	fi
+	if [ ! -d "${XSCDIR}" ]; then
+	  mkdir -p ${XSCDIR}
+	fi
+	chown ${SIAUSR}:${SIAUSR} -R ${XSCDIR}
+	mpoint="$(dirname "${XSCDIR}")"
+	swapon -p 100 ${mpoint}/XSCswap &> /dev/null
+	start-stop-daemon --background --start \
+  	--exec ${SIADEXEC} -u ${SIAUSR} --make-pidfile --pidfile ${PIDFILE} \
+	-- --modules cghrtw --hyperspace-directory ${XSCDIR} --rpc-addr ${xsc_rpc_port} --host-addr ${xsc_host_port}
+  	eend $?
+}
+
+fstop() {
+        ebegin "Stopping hsd daemon"
+	# If we want to restup XSC, just remove it from startup NOW as it will fail to stop later
+	# we don't source the parameters file directly
+	setupxsc=$(grep -P 'setup_xsc\s*=\.*' /boot/storij/parameters.txt |cut -d '=' -f 2)
+	if [ ${setupxsc} == "1" ] || [ ${setupxsc} == "2" ]; then
+	     	rc-update del hsd default
+		rc-update del XSCWalletUnlocker default
+	fi
+	# ensuring that hsd will finally stop
+        start-stop-daemon --stop --exec ${SIACEXE} stop \
+	--pidfile ${PIDFILE} -d ${XSCDIR} || hsc stop
+        eend $? "Failed to stop hsd daemon"
+}
+

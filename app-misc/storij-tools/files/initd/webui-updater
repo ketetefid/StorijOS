@@ -1,0 +1,28 @@
+#!/sbin/openrc-run
+
+# Copyright (c) 2019 ketetefid <ketetefid@gmail.com>
+# License: GPL 3.0+
+# Although StorijOS has been tested by the author and is intended to be helpful,
+# it comes with ABSOLUTELY NO WARRANTY, to the extent permitted by applicable law.
+
+description="Updates Storij-WebUI to the latest"
+
+depend() {
+	need apache2 localmount copy_parameters
+	after apache2 modules sysctl root
+}
+
+update_UI() {
+	# Do the update
+	/usr/local/bin/update-webui &> /dev/null
+
+	# Remove webui-updater from default runlevel
+	rc-update del webui-updater default
+	return 0
+}
+
+start() {
+     	ebegin "Updating the WebUI to the latest version. Please wait"
+   	update_UI
+	eend $?
+}

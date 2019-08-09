@@ -1,0 +1,4 @@
+#! /bin/bash
+cat /etc/storij/timezone > /etc/timezone && emerge --config sys-libs/timezone-data && \
+    /etc/init.d/chronyd restart
+

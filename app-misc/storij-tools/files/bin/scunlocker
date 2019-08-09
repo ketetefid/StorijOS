@@ -1,0 +1,8 @@
+#! /bin/bash
+siacexe=/usr/bin/siac
+checker=`$siacexe 2> /dev/null |grep Synced| awk '{print $2}'`
+while [ ! $checker == "Yes" ] || [[ -z  $checker  ]]; do
+    sleep 2
+    checker=`$siacexe 2> /dev/null |grep Synced| awk '{print $2}'`
+done
+curl -i -A "Sia-Agent" -X POST localhost:9980/wallet/unlock?encryptionpassword=YourPasswordHere

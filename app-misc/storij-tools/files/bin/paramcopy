@@ -1,0 +1,6 @@
+#! /bin/bash
+lead='^###Begin StorijOS Parameters$'
+tail='^###End StorijOS Parameters$'
+newrc=$(sed -e "/$lead/,/$tail/{ /$lead/{p; r /boot/storij/parameters.txt
+        }; /$tail/p; d }" /etc/rc.conf)
+echo "$newrc" > /etc/rc.conf

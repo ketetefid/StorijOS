@@ -1,0 +1,83 @@
+#!/sbin/openrc-run
+depend() {
+  need localmount net hsd
+  after hsd
+  use logger
+}
+
+PIDFILE=/var/run/xscunlocker.pid
+LOCKER=/usr/local/bin/xsclocker
+UNLOCKER=/usr/local/bin/xscunlocker
+extra_commands="fstart fstop"
+
+start() {
+	ebegin "Unlocking HSApp wallet"
+	
+	# To make sure nobody can read the file except root and ${SIAUSR}
+	chown root:${SIAUSR} ${UNLOCKER} && chmod 750 ${UNLOCKER}
+
+	# ${UNLOCKER} checks if siac has been loaded and if it is synced.
+	# If not, it will wait.
+
+	# It works and does not lock ssh, but it will mark it as crashed.
+	start-stop-daemon --start --background --exec ${UNLOCKER} -u ${SIAUSR} \
+	--make-pidfile --pidfile ${PIDFILE}
+
+	# This works as well, but the system will wait for it and
+	# no ssh will be available untill unlocker is done.
+	#su -c ${UNLOCKER} ${SIAUSR}
+  	eend $?
+}
+
+stop() {
+        ebegin "Locking HSApp wallet"
+
+	# It works, but it will mark it as crashed.
+	start-stop-daemon --stop --exec ${LOCKER} -u ${SIAUSR} \
+	--pidfile ${PIDFILE}
+
+	# This works as	well, but the system will wait for it and
+        # no ssh will be available untill unlocker is done.
+	#su -c ${LOCKER} ${SIAUSR}
+        eend $? "Failed to lock HSApp wallet"
+}
+
+fstart() {
+	 # Forcing starting the unlocker without depending on stop() state.
+	ebegin "Unlocking HSApp wallet"
+	
+	# To make sure nobody can read the file except root and ${SIAUSR}
+	chown root:${SIAUSR} ${UNLOCKER} && chmod 750 ${UNLOCKER}
+
+	# ${UNLOCKER} checks if siac has been loaded and if it is synced.
+	# If not, it will wait.
+
+	# It works and does not lock ssh, but it will mark it as crashed.
+	start-stop-daemon --start --background --exec ${UNLOCKER} -u ${SIAUSR} \
+	--make-pidfile --pidfile ${PIDFILE}
+
+	# This works as well, but the system will wait for it and
+	# no ssh will be available untill unlocker is done.
+	#su -c ${UNLOCKER} ${SIAUSR}
+
+	return 0
+	eend $?
+}
+
+fstop() {
+	# Forcing stop of the unlocker without depending on start () function.
+        ebegin "Locking HSApp wallet"
+
+	# It works, but it will mark it as crashed.
+	start-stop-daemon --stop --exec ${LOCKER} -u ${SIAUSR} \
+	--pidfile ${PIDFILE}
+
+	# This works as	well, but the system will wait for it and
+        # no ssh will be available untill unlocker is done.
+	#su -c ${LOCKER} ${SIAUSR}
+
+	# Forced locking as sometimes start-stop-daemon doesn't work 
+	/usr/local/bin/xsclocker
+	
+        eend $? "Failed to lock HSApp wallet"
+}

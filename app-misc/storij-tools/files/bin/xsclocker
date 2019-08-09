@@ -1,0 +1,14 @@
+#! /bin/bash
+if pgrep xscunlocker &> /dev/null
+then
+    killall -9 xscunlocker &> /dev/null
+else
+    :
+fi
+
+if hsc wallet 2> /dev/null | grep -i -q unlocked
+then
+    /usr/bin/hsc wallet lock
+else
+    :
+fi

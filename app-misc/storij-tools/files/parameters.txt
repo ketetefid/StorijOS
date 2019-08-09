@@ -1,0 +1,111 @@
+##################### Global Variables for StorijOS #####################
+# The preferred way of working with this file is
+# through Storij-WebUI. It is better to work from the UI and not by
+# directly editing this file. 
+
+# Sia directory path. Try to specify it under /mnt/disk/ so that creating
+# the Sia structure on external devices (like flash drives) will be possible.
+SCDIR=/mnt/disk2/scsoft
+
+# HyperSpace director path. Remember that different chains need different
+# mount points in the parent like /mnt/disk1 & /mnt/disk2
+XSCDIR=/mnt/disk1/xscsoft
+
+# Run Sia daemon as this user. The user will automatically be created.
+# Remember to only use lower case letters and do not use special characters. Also
+# your preferred name must not have any spaces and it must not begin with a number.
+SIAUSR=storijer
+
+# The hostname of the system. By default it is set to storijos but if you intend
+# to run multiple storij devices on the same network, you had better set differnet
+# hostnames for each of them as the chain addresses work based on this value and
+# some conflict might arise if every device has the same name.
+hostname=storijos
+
+# Internal IP that the Pi will get. Starting with Storij v1.0.0 if you change this
+# parameter directly via editing this file, you will need to issue "rc-update add ipsetter"
+# after each change, to make the OS get the IP. If you use Storij-WebUI, everything is
+# automated and you do not need to do the extra step.
+# Also, you may set this to "auto" which, then, will automatically get an IP in the pattern
+# of xxx.xxx.xxx.100. Remember that you will need to reboot your Pi to make it get the new IP.
+int_ip=auto
+
+# The external static IP address, if your ISP has given one to you. If you do not own one, then
+# use the "dynamic" external IP type below.
+ext_ip=100.100.100.100
+
+# Your domain name, in case you have acquired one. It will not have a direct effect until you
+# create an SSL certificate for the WebUI through certbot. For more information, refer to the
+# Howto/QuickStart guide.
+domain_name=yournicedomainname.com
+
+# Shall we use the domain_name provided above instead of the static IP  when announcing the host?
+# 0 means no and 1 means yes.
+use_domain=0
+
+# Shall we expand the root partition to the maximum available space in the next boot?
+# 0 means no and 1 means yes. Anything else means no as well. This should be done once.
+expand=0
+
+# Shall we format the attached drive on the next boot and create HyperSpace structure in it?
+# 0 means no; 1 means bootstrapping and 2 means downloading a pre-compiled layout.
+# Anything else means no as well.
+setup_xsc=0
+
+# Format the attached drive on the next boot and construct Sia on it. 
+# 0 means no; 1 means bootstrapping and 2 means downloading a pre-compiled layout.
+# Anything else means no as well.
+setup_sc=0
+
+# Specify the "host" port for the HyperSpace daemon.
+xsc_host_port=6682
+
+# Specify the "RPC" port for the HyperSpace daemon.
+xsc_rpc_port=6686
+
+# Specify the "host" port for the Sia daemon.
+sc_host_port=5582
+
+# Specify the "RPC" port for the Sia daemon.
+sc_rpc_port=5581
+
+# Would you like the system to auto unlock your wallet on every boot?
+# 1 means yes and 0 means no. Anything else means no as well.
+# If you are enabling this option directly via editing this file and not through
+# the WebUI, You NEED to edit the file "/usr/local/bin/unlocker" and put your wallet password
+# on the line before the last one. The WebUI automatically does this.
+# This option works with "setup_xsc". If you decide to prepare a flash drive
+# for running the HyperSpace software, you can set this parameter to 1 and it will enable
+# the auto unlocking after it prepares the drive.
+xsc_auto_unlock=0
+
+# Do automatic unlocking for Sia chain
+sc_auto_unlock=0
+
+# The type of external IP you have. If it is static, then set it to "static" or "1".
+# Anything else means dynamic, like "dynamic" or "0".
+# If you are not using the WebUI, after each change to "static", run as root:
+#    	 rc-service ddclient stop; rc-update del ddclient
+# And if you are not using the WebUI, after each change to "dynamic", and when you have set
+# the FreeDNS parameters below, run as root:
+#     	 rc-service ddclient start; rc-update add ddclient
+ext_ip_type=static
+
+# In case your external IP is dynamic, set the username for login at http://freedns.afraid.org/
+# here. You will need to set the password through the Web-UI or enter it directly in
+# /etc/ddclient/ddclient.conf.
+freedns_login=storij
+
+# If your external IP is dynamic, set this parameter to your domain you have set on
+# http://freedns.afraid.org/.
+freedns_domain=storij.ddns.net
+
+# msdos or gpt for the attached hard drives? GPT is of course better but some UEFI systems
+# corrupt the GPT table of the attached hard disks. If you are on a Pi, you can safely
+# choose gpt.
+disklayout=gpt
+
+# Specify the network device here. We will need it mainly for upnp.
+# most of the time it is eth0 (like storijos on a Raspberry pi 3).
+# Please note that wireless connection is still being implemented and is not ready.
+net_dev=eth0

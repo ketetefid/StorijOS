@@ -1,0 +1,23 @@
+# Partial make.conf source for using storijOS on ARM64 or AMD64
+
+############################ Arm64 specifics (Raspberry Pi 3)
+CFLAGS="-march=armv8-a+crc+crypto -mtune=cortex-a53 -O2 -pipe"
+CXXFLAGS="${CFLAGS}"
+
+# To have better support for ARM64
+ACCEPT_KEYWORDS="~arm64"
+
+
+########################### Options needed for both AMD64 and ARM64
+# Additional USE flags in addition to those specified by the current profile.
+USE="${USE} bindist -mudflap -sanitize -gtk3 -gtk -X -xft -systemd"
+USE="${USE} fam gpm spell"
+# Get the web-hosting capabilities:
+USE="${USE} mysql apache2 php fpm threads bcmath"
+# For the email system (future potential integration):
+USE="${USE} authdaemond imap sasl vhosts"
+
+# Apache specific options :
+APACHE2_MPMS="worker"
+
+APACHE2_MODULES="auth_form session request proxy xml2enc proxy_ajp proxy_connect proxy_fcgi proxy_ftp proxy_html proxy_http proxy_scgi proxy_wstunnel $APACHE2_MODULES" 

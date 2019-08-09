@@ -1,0 +1,51 @@
+# zram settings...
+
+# load zram kernel module on start?
+load_on_start=yes
+
+# unload zram kernel module on stop?
+unload_on_stop=yes
+
+# Number of devices.
+# This value is also passed to the kernel module on modprobe.
+num_devices=1
+
+# For each device, specify
+#   type, size, maxs, algo, flags, opts, mode, owgrm, notr
+# The last 4 are ignored for type swap but not for the other types.
+# Specify as empty if unneeded.
+# type0, type1, ... are the variables for the types.
+# size0, size1, ... are the variables for the sizes.
+# maxs0, maxs1, ... are the variables for the maximal (parallel) streams.
+# algo0, algo1, ... are the variables for the compression algorithms.
+# flag0, flag1, ... are the variables for the flags.
+# Except for swap:
+# opts0, opts1, ... are the variables for the mount options.
+# mode0, mode1, ... are the variables for the directory mode.
+# owgr0, owgr1, ... are the variables for the directory owner:group.
+# notr0, notr1, ... are the flags for "do not trim (discard)" (if nonempty)
+# (set notr* to a nonempty value only for linux-3.14 or earlier or when you
+# are prepared to waste a lot of memory for a possibly slight speed increase)
+#
+# The size is in megabytes.
+# If the size is 0 (or empty) the device is ignored by the script.
+#
+# Available types:
+# "swap"  The device is initialized as a swap device.
+#         The flags variable specifies the priority (16383 if empty).
+#         Use "-" in the flags variable for the default priority (-1)
+# "/..."  The device is mounted on /...
+#         The flags variable specifies the type (ext2, ext4, or btrfs;
+#         default is ext4)
+# "-"     The filesystem (specified by flags as above) is created in
+#         /dev/zram$NUM but not mounted
+# Devices with other types are ignored by the script
+#
+# Only variables with numbers  0 ... num_devices-1  are used by the script.
+
+# swap - half the ram
+type0=swap
+flag0= # The default "16383" is fine for us
+size0=$(($(free -m|grep Mem|awk {'print $2'})/2))
+maxs0=3 # maximum number of parallel processes for this device
+algo0=lz4 # lz4 is faster than lzo

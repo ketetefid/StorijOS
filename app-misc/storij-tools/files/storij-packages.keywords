@@ -1,0 +1,255 @@
+dev-lang/go
+sys-firmware/b43-firmware
+sys-apps/ack	* ~*
+# dependencies of sys-apps/ack
+dev-perl/File-Next	* ~*
+
+www-apache/mod_xml2enc **
+
+net-dns/bind **
+# required by app-admin/augeas-1.8.1::gentoo
+# required by dev-python/python-augeas-0.5.0::gentoo
+# required by app-crypt/certbot-apache-9999::gentoo
+# required by app-crypt/certbot-apache (argument)
+app-doc/NaturalDocs **
+# required by app-crypt/certbot-apache-9999::gentoo
+# required by app-crypt/certbot-apache (argument)
+dev-python/python-augeas **
+# required by app-crypt/certbot-apache-9999::gentoo
+# required by app-crypt/certbot-apache (argument)
+app-crypt/certbot **
+# required by dev-python/python-augeas-0.5.0::gentoo
+# required by app-crypt/certbot-apache-9999::gentoo
+# required by app-crypt/certbot-apache (argument)
+app-admin/augeas **
+# required by app-crypt/certbot-apache-9999::gentoo
+# required by app-crypt/certbot-apache (argument)
+app-crypt/acme **
+# required by app-crypt/certbot-apache (argument)
+app-crypt/certbot-apache **
+
+# required by app-crypt/acme-9999::gentoo
+# required by app-crypt/certbot-9999::gentoo
+# required by app-crypt/certbot-apache-9999::gentoo
+# required by @selected
+# required by @world (argument)
+dev-python/requests-toolbelt **
+# required by net-dns/ddclient-3.9.0-r1::gentoo
+# required by @selected
+# required by @world (argument)
+dev-perl/Data-Validate-IP **
+# required by dev-perl/Data-Validate-IP-0.270.0::gentoo
+# required by net-dns/ddclient-3.9.0-r1::gentoo
+# required by @selected
+# required by @world (argument)
+dev-perl/NetAddr-IP **
+
+net-misc/chrony * ~*
+
+net-dns/ddclient **
+
+virtual/emacs	* ~*
+# dependencies of virtual/emacs
+app-editors/emacs	* ~*
+app-eselect/eselect-emacs	* ~*
+app-emacs/emacs-common-gentoo	* ~*
+
+app-emacs/php-mode **
+
+sys-fs/eudev * ~*
+
+app-portage/euses * ~*
+
+dev-tcltk/expect	* ~*
+
+net-analyzer/fail2ban ~*
+
+sys-process/iotop	* ~*
+
+net-misc/iperf	* ~*
+
+net-analyzer/iptraf-ng	* ~*
+
+net-wireless/iw * ~*
+
+www-client/links	* ~*
+
+# required by dev-java/maven-bin-3.3.9::gentoo
+# required by dev-java/maven-bin (argument)
+dev-java/commons-cli **
+# required by dev-java/maven-bin (argument)
+dev-java/maven-bin **
+# required by dev-java/maven-bin-3.3.9::gentoo
+# required by dev-java/maven-bin (argument)
+dev-java/osgi-core-api **
+# required by dev-java/maven-bin-3.3.9::gentoo
+# required by dev-java/maven-bin (argument)
+dev-java/jsoup **
+# required by dev-java/maven-bin-3.3.9::gentoo
+# required by dev-java/maven-bin (argument)
+java-virtuals/interceptor-api **
+# required by dev-java/maven-bin-3.3.9::gentoo
+# required by dev-java/maven-bin (argument)
+dev-java/juel **
+# required by java-virtuals/interceptor-api-0::gentoo
+# required by dev-java/maven-bin-3.3.9::gentoo
+# required by dev-java/maven-bin (argument)
+dev-java/glassfish-interceptor-api **
+# required by dev-java/maven-bin-3.3.9::gentoo
+# required by dev-java/maven-bin (argument)
+dev-java/jsr250 **
+# required by dev-java/maven-bin-3.3.9::gentoo
+# required by dev-java/maven-bin (argument)
+dev-java/aopalliance **
+# required by dev-java/maven-bin-3.3.9::gentoo
+# required by dev-java/maven-bin (argument)
+dev-java/javax-inject **
+
+sys-fs/mdadm **
+app-portage/mirrorselect * ~*
+# requirements of mirrorselect
+net-analyzer/netselect * ~*
+
+# dependencies of sys-fs/multipath-tools
+dev-libs/userspace-rcu	* ~*
+
+net-analyzer/nload * ~*
+
+
+sys-fs/ntfs3g **
+# required by dev-lang/python-3.6.6::gentoo
+# required by dev-util/ninja-1.8.2-r2::gentoo
+# required by sys-fs/fuse-common-3.2.6::gentoo
+# required by sys-fs/fuse-2.9.8::gentoo
+# required by sys-fs/ntfs3g-2017.3.23-r1::gentoo
+# required by @selected
+# required by @world (argument)
+virtual/libffi **
+
+# move net-misc/openvpn net-vpn/openvpn
+net-vpn/openvpn	* ~*
+
+
+net-libs/c-client **
+# required by dev-lang/php-7.1.2::gentoo
+# required by www-apps/wordpress-4.7.2::gentoo
+# required by @selected
+# required by @world (argument)
+virtual/imap-c-client **
+www-apps/wordpress
+
+media-libs/t1lib **
+
+mail-mta/postfix **
+
+#############postfixadmin
+dev-perl/Net-DNS-SEC **
+# required by dev-perl/Net-DNS-SEC-1.20.0::gentoo
+dev-perl/Net-DNS **
+# required by dev-perl/Crypt-OpenSSL-RSA-0.280.0-r3::gentoo
+# required by dev-perl/Net-DNS-SEC-1.20.0::gentoo
+# required by dev-perl/Net-DNS-1.70.0::gentoo[-minimal]
+# required by dev-perl/Email-Valid-1.202.0::gentoo
+# required by www-apps/postfixadmin-2.3.8::gentoo[vacation]
+# required by postfixadmin (argument)
+>=dev-perl/Crypt-OpenSSL-Random-0.110.0 **
+# required by dev-perl/Mail-Sender-0.903.0::gentoo[-minimal]
+# required by www-apps/postfixadmin-2.3.8::gentoo[vacation]
+# required by postfixadmin (argument)
+>=dev-perl/Authen-NTLM-1.90.0-r1 **
+# required by www-apps/postfixadmin-2.3.8::gentoo[vacation]
+# required by postfixadmin (argument)
+>=dev-perl/Log-Dispatch-2.580.0 **
+# required by dev-perl/Mail-Sender-0.903.0::gentoo[-minimal]
+# required by www-apps/postfixadmin-2.3.8::gentoo[vacation]
+# required by postfixadmin (argument)
+>=dev-perl/Mozilla-CA-20999999 **
+# required by dev-perl/MIME-EncWords-1.14.3::gentoo
+# required by www-apps/postfixadmin-2.3.8::gentoo[vacation]
+# required by postfixadmin (argument)
+>=dev-perl/MIME-Charset-1.12.0 **
+# required by dev-perl/Email-Valid-1.202.0::gentoo
+# required by www-apps/postfixadmin-2.3.8::gentoo[vacation]
+# required by postfixadmin (argument)
+>=dev-perl/Net-Domain-TLD-1.740.0 **
+# required by www-apps/postfixadmin-2.3.8::gentoo[vacation]
+# required by postfixadmin (argument)
+>=dev-perl/Log-Log4perl-1.480.0 **
+# required by postfixadmin (argument)
+>=www-apps/postfixadmin-2.3.8 **
+# required by www-apps/postfixadmin-2.3.8::gentoo[vacation]
+# required by postfixadmin (argument)
+>=dev-perl/Mail-Sender-0.903.0 **
+# required by dev-perl/Net-DNS-1.70.0::gentoo[-minimal]
+# required by dev-perl/Net-DNS-SEC-1.20.0::gentoo
+>=dev-perl/Digest-BubbleBabble-0.20.0-r1 **
+# required by dev-perl/Net-DNS-1.70.0::gentoo[-minimal]
+# required by dev-perl/Net-DNS-SEC-1.20.0::gentoo
+>=dev-perl/Digest-GOST-0.60.0 **
+# required by www-apps/postfixadmin-2.3.8::gentoo[vacation]
+# required by postfixadmin (argument)
+>=dev-perl/MIME-EncWords-1.14.3 **
+# required by dev-perl/Net-DNS-1.70.0::gentoo[-minimal]
+# required by dev-perl/Net-DNS-SEC-1.20.0::gentoo
+>=dev-perl/Net-LibIDN-0.120.0-r1 **
+# required by www-apps/postfixadmin-2.3.8::gentoo[vacation]
+# required by postfixadmin (argument)
+>=dev-perl/Email-Valid-1.202.0 **
+# required by dev-perl/Net-DNS-SEC-1.20.0::gentoo
+# required by dev-perl/Net-DNS-1.70.0::gentoo[-minimal]
+# required by dev-perl/Email-Valid-1.202.0::gentoo
+# required by www-apps/postfixadmin-2.3.8::gentoo[vacation]
+# required by postfixadmin (argument)
+>=dev-perl/Crypt-OpenSSL-DSA-0.190.0 **
+# required by dev-perl/Net-DNS-SEC-1.20.0::gentoo
+# required by dev-perl/Net-DNS-1.70.0::gentoo[-minimal]
+# required by dev-perl/Email-Valid-1.202.0::gentoo
+# required by www-apps/postfixadmin-2.3.8::gentoo[vacation]
+# required by postfixadmin (argument)
+>=dev-perl/Crypt-OpenSSL-RSA-0.280.0-r3 **
+# required by dev-perl/Log-Dispatch-2.580.0::gentoo
+# required by www-apps/postfixadmin-2.3.8::gentoo[vacation]
+# required by postfixadmin (argument)
+>=dev-perl/Devel-GlobalDestruction-0.140.0 **
+# required by dev-perl/Net-DNS-SEC-1.20.0::gentoo
+# required by dev-perl/Net-DNS-1.70.0::gentoo[-minimal]
+# required by dev-perl/Email-Valid-1.202.0::gentoo
+# required by www-apps/postfixadmin-2.3.8::gentoo[vacation]
+# required by postfixadmin (argument)
+>=dev-perl/Crypt-OpenSSL-Bignum-0.70.0 **
+# required by dev-perl/Email-Valid-1.202.0::gentoo
+# required by www-apps/postfixadmin-2.3.8::gentoo[vacation]
+# required by postfixadmin (argument)
+>=dev-perl/IO-CaptureOutput-1.110.400 **
+
+############for telnet
+>=net-misc/telnet-bsd-1.2-r1 **
+dev-perl/Devel-CheckLib **
+sys-power/powertop	* ~*
+
+app-text/psutils	* ~*
+
+app-arch/rar * ~*
+
+media-libs/raspberrypi-userland **
+net-wireless/rfkill * ~*
+
+dev-db/rocksdb **
+
+www-misc/shellinabox **
+
+sys-apps/smartmontools	* ~*
+
+virtual/cron * ~*
+
+
+sys-fs/zerofree	* ~*
+
+net-misc/miniupnpd **
+net-misc/whatmask **
+net-analyzer/upnpscan **
+
+app-admin/apache-tools
+www-servers/apache
+net-misc/openssh
+net-misc/miniupnpd

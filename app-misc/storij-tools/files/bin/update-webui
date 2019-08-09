@@ -1,0 +1,15 @@
+#! /bin/bash
+if [ ! -d /var/webui ]
+then
+    mkdir /var/webui
+fi
+
+shopt -s dotglob
+rm -rf /var/webui/* &>/dev/null
+git clone https://github.com/ketetefid/Storij-WebUI /var/webui &&\
+    rsync -av --delete --exclude .git /var/webui/ /var/www/localhost/htdocs/
+chown root:root -R /var/www/localhost/htdocs/
+find /var/www/localhost/htdocs/ -type f -exec chmod 644 {} \;
+find /var/www/localhost/htdocs/ -type d	-exec chmod 755 {} \;
+chmod +x /var/www/localhost/htdocs/*/bin/*
+/etc/init.d/apache2 reload

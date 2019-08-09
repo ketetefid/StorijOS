@@ -1,0 +1,16 @@
+www-servers/nginx
+www-client/links
+www-apps/wordpress
+net-libs/nodejs
+sys-power/powertop
+sys-fs/zerofree
+dev-java/maven-bin
+dev-db/phpmyadmin
+dev-db/mysql
+dev-php/PEAR-DB
+app-emulation/qemu
+net-dns/dnsmasq
+net-fs/nfs-utils
+net-misc/bridge-utils
+net-fs/samba
+

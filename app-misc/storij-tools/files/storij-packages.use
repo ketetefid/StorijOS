@@ -1,0 +1,7 @@
+net-dns/bind dlz -mysql
+app-editors/emacs -cairo
+dev-java/oracle-jdk-bin -fontconfig
+net-misc/openssh -hpn X509
+dev-lang/php pdo curl
+net-wireless/wpa_supplicant gnutls
+dev-java/icedtea-bin -cups

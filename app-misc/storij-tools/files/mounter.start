@@ -1,0 +1,2 @@
+#!/bin/bash
+mount -a

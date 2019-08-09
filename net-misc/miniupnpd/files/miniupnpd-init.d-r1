@@ -1,0 +1,44 @@
+#!/sbin/openrc-run
+# Copyright 1999-2016 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+
+command="/usr/sbin/miniupnpd"
+: "${config_file:=/etc/miniupnpd/miniupnpd.conf}"
+command_args="-f ${config_file:-/etc/miniupnpd/miniupnpd.conf} ${extra_args}"
+: "${pidfile:=/var/run/miniupnpd.pid}"
+
+depend() {
+	need net iptables
+	use minissdpd
+}
+
+start_pre() {
+NetRange=$(whatmask $(ifconfig | grep -A 1 "$net_dev" | tail -1 | awk '{print $2}')/$(ifconfig | grep -A 1 "$net_dev" | tail -1 | awk '{print $4}') | grep 'Network Address' | awk '{ print $5  }')$(whatmask $(ifconfig | grep -A 1 "$net_dev" | tail -1 | awk '{print $2}')/$(ifconfig | grep -A 1 "$net_dev" | tail -1 | awk '{print $4}') | grep 'CIDR' | awk '{ print $4  }')
+
+	sed -i "/^#A#marker$/,/^#B#marker$/ {
+	//!d
+	/^#A#marker$/a\
+	allow $xsc_host_port $NetRange $xsc_host_port\\
+allow $xsc_rpc_port $NetRange $xsc_rpc_port\\
+allow $sc_host_port $NetRange $sc_host_port\\
+allow $sc_rpc_port $NetRange $sc_rpc_port
+	}" /etc/miniupnpd/miniupnpd.conf
+
+	local retval=0
+
+	if [[ -z ${no_iptables_scripts} ]]; then
+		/etc/miniupnpd/iptables_init.sh || retval=${?}
+	fi
+	
+	return ${retval}
+}
+
+stop_post() {
+	local retval=0
+
+	if [[ -z ${no_iptables_scripts} ]]; then
+		/etc/miniupnpd/iptables_removeall.sh
+	fi
+
+	return ${retval}
+}

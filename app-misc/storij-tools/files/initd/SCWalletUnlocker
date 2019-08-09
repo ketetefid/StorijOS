@@ -1,0 +1,87 @@
+#!/sbin/openrc-run
+depend() {
+  need localmount net siad
+  after siad
+  use logger
+}
+
+PIDFILE=/var/run/scunlocker.pid
+LOCKER=/usr/local/bin/sclocker
+UNLOCKER=/usr/local/bin/scunlocker
+extra_commands="fstart fstop"
+
+start() {
+	ebegin "Unlocking Sia wallet"
+	
+	# To make sure nobody can read the file except root and ${SIAUSR}
+	chown root:${SIAUSR} ${UNLOCKER} && chmod 750 ${UNLOCKER}
+
+	# ${UNLOCKER} checks if siac has been loaded and if it is synced.
+	# If not, it will wait.
+
+	# It works and does not lock ssh, but it will mark it as crashed.
+	start-stop-daemon --start --background --exec ${UNLOCKER} -u ${SIAUSR} \
+	--make-pidfile --pidfile ${PIDFILE}
+
+	# This works as well, but the system will wait for it and
+	# no ssh will be available untill unlocker is done.
+	#su -c ${UNLOCKER} ${SIAUSR}
+  	eend $?
+}
+
+stop() {
+        ebegin "Locking Sia wallet"
+
+	# It works, but it will mark it as crashed.
+	start-stop-daemon --stop --exec ${LOCKER} -u ${SIAUSR} \
+	--pidfile ${PIDFILE}
+
+	# This works as	well, but the system will wait for it and
+        # no ssh will be available untill unlocker is done.
+	#su -c ${LOCKER} ${SIAUSR}
+
+	# Forced locking as sometimes start-stop-daemon doesn't work
+	su - $SIAUSR -c /usr/local/bin/sclocker
+	
+        eend $? "Failed to lock Sia wallet"
+}
+
+fstart() {
+	 # Forcing starting the unlocker without depending on stop() state.
+	ebegin "Unlocking Sia wallet"
+	
+	# To make sure nobody can read the file except root and ${SIAUSR}
+	chown root:${SIAUSR} ${UNLOCKER} && chmod 750 ${UNLOCKER}
+
+	# ${UNLOCKER} checks if siac has been loaded and if it is synced.
+	# If not, it will wait.
+
+	# It works and does not lock ssh, but it will mark it as crashed.
+	start-stop-daemon --start --background --exec ${UNLOCKER} -u ${SIAUSR} \
+	--make-pidfile --pidfile ${PIDFILE}
+
+	# This works as well, but the system will wait for it and
+	# no ssh will be available untill unlocker is done.
+	#su -c ${UNLOCKER} ${SIAUSR}
+
+	return 0
+	eend $?
+}
+
+fstop() {
+	# Forcing stop of the unlocker without depending on start () function.
+        ebegin "Locking Sia wallet"
+
+	# It works, but it will mark it as crashed.
+	start-stop-daemon --stop --exec ${LOCKER} -u ${SIAUSR} \
+	--pidfile ${PIDFILE}
+
+	# This works as	well, but the system will wait for it and
+        # no ssh will be available untill unlocker is done.
+	#su -c ${LOCKER} ${SIAUSR}
+
+	# Forced locking as sometimes start-stop-daemon doesn't work 
+	su - $SIAUSR -c /usr/local/bin/sclocker
+	
+        eend $? "Failed to lock Sia wallet"
+}

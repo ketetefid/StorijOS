@@ -1,0 +1,11 @@
+# /etc/conf.d/hsd: config file for /etc/init.d/hsd
+
+# PID file
+PIDFILE=/var/run/hsd.pid
+
+# timeout for startup/shutdown checks
+#TIMEOUT=10
+
+# Sia executable path
+SIADEXEC=/usr/bin/hsd
+SIACEXEC=/usr/bin/hsc

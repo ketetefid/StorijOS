@@ -1,0 +1,14 @@
+#! /bin/bash
+if pgrep scunlocker &> /dev/null
+then
+    killall -9 scunlocker &> /dev/null
+else
+    :
+fi
+
+if siac wallet 2> /dev/null | grep -i -q unlocked
+then
+    /usr/bin/siac wallet lock
+else
+    :
+fi

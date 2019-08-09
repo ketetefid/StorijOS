@@ -1,0 +1,24 @@
+#!/sbin/openrc-run
+depend() {
+  need localmount net docker sonm-node 
+  after bootmisc
+  use logger
+}
+
+PIDFILE=/var/run/sonm-worker.pid
+SONM=/usr/bin/sonmworker_linux_x86_64
+SONMCONFIG=/etc/sonm/worker.yaml
+LOG=/var/log/sonm/worker.log
+start() {
+	ebegin "Starting sonm-worker daemon"
+	start-stop-daemon --start \
+  	--exec $SONM --background --make-pidfile --pidfile $PIDFILE \
+	--stdout $LOG --stderr $LOG -P -w 5000 -- --config $SONMCONFIG
+  	eend $?
+}
+
+stop() {
+        ebegin "Stopping sonm-worker daemon"
+        start-stop-daemon --stop --pidfile ${PIDFILE}
+        eend $? "Failed to stop sonm-worker daemon"
+}

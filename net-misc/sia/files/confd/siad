@@ -1,0 +1,11 @@
+# /etc/conf.d/siad: config file for /etc/init.d/siad
+
+# PID file
+PIDFILE=/var/run/siad.pid
+
+# timeout for startup/shutdown checks
+#TIMEOUT=10
+
+# Sia executable path
+SIADEXEC=/usr/bin/siad
+SIACEXEC=/usr/bin/siac

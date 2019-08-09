@@ -1,0 +1,6 @@
+#! /bin/bash
+crontab -l > /tmp/mycron
+echo "43	6	*	*	*       certbot renew" >> /tmp/mycron
+crontab /tmp/mycron
+rm /tmp/mycron
+echo Everything was set.
