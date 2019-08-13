@@ -217,8 +217,8 @@ _dl_sync() {
 			#echo "${mpoint}/SCswap    none         swap    sw,pri=100                0       0" >>/etc/fstab
 		fi
 
-		# The address: https://storij.net/consensus.db
-		wget -c -o /wget-log -O ${mpoint}/consensus.db https://storij.net/sc-consensus.db > /dev/null 2>&1
+		# The address: https://consensus.siahub.info/consensus.db.gz
+		wget -c -o /wget-log -O ${mpoint}/consensus.db.gz https://consensus.siahub.info/consensus.db.gz > /dev/null 2>&1
 		if [ $? -ne 0 ]; then
                         eerror "Failed to download the blockchain."
                         return 1
@@ -326,7 +326,8 @@ _dl_sync() {
 		sleep 2
 		# Copy or move the database to $SCDIR
 		mkdir "${SCDIR}"/consensus
-		mv ${mpoint}/consensus.db "${SCDIR}"/consensus/
+		mv ${mpoint}/consensus.db.gz "${SCDIR}"/consensus/
+		gunzip -d "${SCDIR}"/consensus/consensus.db.gz
 		chown -R ${SIAUSR}:${SIAUSR} "${SCDIR}"
 		ewarn "***********************************************************************"
 		ewarn "* Consensus.db was placed and everything was set. Keep your drive      "

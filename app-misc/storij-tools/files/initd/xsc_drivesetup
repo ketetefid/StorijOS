@@ -218,7 +218,7 @@ _dl_sync() {
 		fi
 
 		# The address: https://storij.net/consensus.db
-		wget -c -o /wget-log -O ${mpoint}/consensus.db https://storij.net/xsc-consensus.db > /dev/null 2>&1
+		wget -c -o /wget-log -O ${mpoint}/consensus.db.gz https://storij.net/xsc-consensus.db.gz > /dev/null 2>&1
 		if [ $? -ne 0 ]; then
                         eerror "Failed to download the blockchain."
                         return 1
@@ -324,7 +324,8 @@ _dl_sync() {
 		sleep 2
 		# Copy or move the database to $XSCDIR
 		mkdir "${XSCDIR}"/consensus
-		mv ${mpoint}/consensus.db "${XSCDIR}"/consensus/
+		mv ${mpoint}/consensus.db.gz "${XSCDIR}"/consensus/
+		gunzip -d "${XSCDIR}"/consensus/consensus.db.gz
 		chown -R ${SIAUSR}:${SIAUSR} "${XSCDIR}"
 		ewarn "***********************************************************************"
 		ewarn "* Consensus.db was placed and everything was set. Keep your drive      "
