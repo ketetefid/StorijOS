@@ -5,7 +5,7 @@
 
 Storij is an operating system and a collection of tools for easy hosting on HyperSpace and Sia (and more) blockchains. The features include:
 
-  - Easy hosting management through a graphical user interface
+  - Easy hosting management through a graphical user interface with one time password as the login mechanism
   - Either bootstrap the blockchain or download a pre-verified one and quickly deploy hosting
   - Supports both HyperSpace and Sia chains; more are being implemented
   - Requires minimal supervision; auto updates the blockchain software
@@ -49,6 +49,10 @@ If /boot is on a properly permissioned filesystem like ext4, just issue ```chown
 
 - StorijOS assumes that the machine is connected to the internet through ```eth0```. In case you want to manipulate the network layer through the WebUI and the interface name is different, either rename it via a udev rule or create an appropriate symlink to net.eth0. For most systems including RPi3, no change is needed.
 - The static IP gained by setting auto in the Internal IP setting of the WebUI will result in an address like xxx.xxx.xxx.133. If 133 was already engaged, either release it or set a complete IP in the WebUI instead of auto.
+
+## How to work with StorijOS
+Please see the quick start guide at https://storij.net/How-To-Setup/. 
+
 ## Bugs and Suggestions
 
 If a piece of software does not run properly or as intended, please submit a bug in this repository. If you need general support or have any questions, please create a thread in our Reddit channel, [/r/Storij](https://www.reddit.com/r/Storij/). You may also join https://t.me/storij Telegram group for a discussion. However, if you are seeking technical help, please choose Reddit as your question and the answers can remain for further reference.
