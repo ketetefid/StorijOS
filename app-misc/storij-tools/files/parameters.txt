@@ -61,7 +61,7 @@ setup_sc=0
 xsc_host_port=6682
 
 # Specify the "RPC" port for the HyperSpace daemon.
-xsc_rpc_port=6686
+xsc_rpc_port=6681
 
 # Specify the "host" port for the Sia daemon.
 sc_host_port=5582
@@ -103,7 +103,7 @@ freedns_domain=storij.ddns.net
 # msdos or gpt for the attached hard drives? GPT is of course better but some UEFI systems
 # corrupt the GPT table of the attached hard disks. If you are on a Pi, you can safely
 # choose gpt.
-disklayout=gpt
+disklayout=msdos
 
 # Specify the network device here. We will need it mainly for upnp.
 # most of the time it is eth0 (like storijos on a Raspberry pi 3).
