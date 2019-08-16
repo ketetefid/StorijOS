@@ -308,6 +308,8 @@ _dl_sync() {
 		emerge sia &>/dev/null
 		if [ $? -ne 0 ]; then
                         eerror "Failed to update Sia. Check your network and restup Sia."
+			echo "Failed to update Sia. Check your network and restup Sia." > /wget-log
+			echo "Failed to update Sia. Check your network and restup Sia." >> /wget-log
                         return 1
                 fi		
 
@@ -366,6 +368,8 @@ _dl_sync() {
 		emerge sia &>/dev/null
 		if [ $? -ne 0 ]; then
                         eerror "Failed to update Sia. Check your network and restup Sia."
+			echo "Failed to update Sia. Check your network and restup Sia." > /wget-log
+			echo "Failed to update Sia. Check your network and restup Sia." >> /wget-log
                         return 1
                 fi		
 		

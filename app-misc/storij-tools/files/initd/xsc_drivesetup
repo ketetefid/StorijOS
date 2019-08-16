@@ -307,6 +307,8 @@ _dl_sync() {
 		emerge hsapp &>/dev/null
 		if [ $? -ne 0 ]; then
                         eerror "Failed to update HyperSpace. Check your network and restup HyperSpace."
+			echo "Failed to update HyperSpace. Check your network and restup HyperSpace." > /wget-log
+			echo "Failed to update HyperSpace. Check your network and restup HyperSpace." >> /wget-log
                         return 1
                 fi		
 
@@ -364,6 +366,8 @@ _dl_sync() {
 		emerge hsapp &>/dev/null
 		if [ $? -ne 0 ]; then
                         eerror "Failed to update HyperSpace. Check your network and restup HyperSpace."
+			echo "Failed to update HyperSpace. Check your network and restup HyperSpace." > /wget-log
+			echo "Failed to update HyperSpace. Check your network and restup HyperSpace." >> /wget-log
                         return 1
                 fi		
 		
