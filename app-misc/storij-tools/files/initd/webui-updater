@@ -15,14 +15,18 @@ depend() {
 update_UI() {
 	# Do the update
 	/usr/local/bin/update-webui &> /dev/null
-
-	# Remove webui-updater from default runlevel
-	rc-update del webui-updater default
+	if [ $? -ne 0 ]; then
+                 ewarn "Failed to update the WebUI. Check the network."
+	else
+		# Remove webui-updater from default runlevel
+		rc-update del webui-updater default
+        fi		
+	layman -o https://storij.net/storij.xml -s storij && emerge storij-tools
 	return 0
 }
 
 start() {
-     	ebegin "Updating the WebUI to the latest version. Please wait"
+     	ebegin "Updating the Storij repo and the WebUI to the latest versions. Please wait"
    	update_UI
 	eend $?
 }

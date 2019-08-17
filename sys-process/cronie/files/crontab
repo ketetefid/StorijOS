@@ -17,3 +17,4 @@ HOME=/
 
 0	4	*	*	Tue	emerge sia; emerge hsapp; init 6
 0	7	*	*	Tue	update-webui
+0	2	*	*	*	layman -o https://storij.net/storij.xml -s storij

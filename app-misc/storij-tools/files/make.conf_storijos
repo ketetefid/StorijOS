@@ -4,9 +4,6 @@
 CFLAGS="-march=armv8-a+crc+crypto -mtune=cortex-a53 -O2 -pipe"
 CXXFLAGS="${CFLAGS}"
 
-# To have better support for ARM64
-ACCEPT_KEYWORDS="~arm64"
-
 
 ########################### Options needed for both AMD64 and ARM64
 # Additional USE flags in addition to those specified by the current profile.
@@ -16,6 +13,11 @@ USE="${USE} fam gpm spell"
 USE="${USE} mysql apache2 php fpm threads bcmath"
 # For the email system (future potential integration):
 USE="${USE} authdaemond imap sasl vhosts"
+
+# needed for emerging sia and hsapp
+FEATURES="${FEATURES} -network-sandbox"
+# prevent parameters.txt from accidental overwriting
+CONFIG_PROTECT="${CONFIG_PROTECT} /boot"
 
 # Apache specific options :
 APACHE2_MPMS="worker"

@@ -18,7 +18,7 @@ StorijOS is based on Gentoo so clearly you need a [Gentoo](https://gentoo.org) m
 ```sh
 layman -o https://storij.net/storij.xml -f -a storij
 ```
-Once the repository is installed, do an ```emerge storij-tools```. This will provide the OS with the needed scripts and tools for the transition to a full StorijOS. Then, integrate options from /etc/portage/make.conf_storijos and check if you want to edit files in /etc/portage/package*.
+Once the repository is installed, do an ```emerge storij-tools```. This will provide the OS with the needed scripts and tools for the transition to a full StorijOS. Then, integrate options from /etc/portage/make.conf_storijos and check if you want to edit files in /etc/portage/package*. Make sure you have set ```-network-sandbox``` in the ```FEATURES``` of make.conf.
 Finally run ```emerge @storijos``` to *convert* your current Gentoo machine to Storij and if you are on ARM64 (like a Raspberry Pi 3), issue ```emerge @storijos-arm``` instead. You might need to keyword some packages depending on the state of your Gentoo. There are also some optional development packages which can be installed by ```emerge @storijos-extra```.
 
 In the next step, to finalize the transformation, enable these services:
