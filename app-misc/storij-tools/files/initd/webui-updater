@@ -21,7 +21,7 @@ update_UI() {
 		# Remove webui-updater from default runlevel
 		rc-update del webui-updater default
         fi		
-	layman -o https://storij.net/storij.xml -s storij && emerge storij-tools
+	layman -o https://storij.net/storij.xml -s storij && emerge storij-tools &> /dev/null
 	return 0
 }
 
