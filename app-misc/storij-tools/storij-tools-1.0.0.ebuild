@@ -18,7 +18,7 @@ pkg_preinst() {
     insinto /etc/portage
     doins "${FILESDIR}"/make.conf_storijos
 
-    insinto /etc/portage/package.keywords
+    insinto /etc/portage/package.accept_keywords
     doins "${FILESDIR}"/storij-packages.keywords
 
     insinto /etc/portage/package.use
