@@ -14,11 +14,11 @@ start() {
    if [ $int_ip != $int_ip_new ] || [ $int_ip_new == "auto" ]
    then
       # The user has requested a new IP change.
-      ebegin "Setting the IP change"
-      # Setting eth0 to dhcp so that we don't have to restart into dhcp again.
-      echo 'config_eth0="dhcp"' > /etc/conf.d/net.eth0
+      ebegin "Setting the IP change."
+      # Setting ${net_dev} to dhcp so that we don't have to restart into dhcp again.
+      echo config_${net_dev}='"dhcp"' > /etc/conf.d/net.${net_dev}
       # We remove problematic init scripts from startup and add ipsetter.
-      # Stopping the services helps net.eth0 to be restarted more easily.
+      # Stopping the services helps net.${net_dev} to be restarted more easily.
       # Another reason is that these services might fail to restart after the IP change.
       
       # We write the enabled services to /boot/storij/initlist and ipsetter will read it.

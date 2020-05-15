@@ -15,30 +15,45 @@ depend() {
 }
 
 ip_setter() {
-	# If net.eth0 is up through dhcp, we skip setting dhcp again and restarting net.eth0
-	if ! grep -q 'config_eth0[[:space:]]*=[[:space:]]*"dhcp"' /etc/conf.d/net.eth0; then
-	   if ! echo 'config_eth0="dhcp"' > /etc/conf.d/net.eth0 && /etc/init.d/net.eth0 restart &>/dev/null; then
-		eerror "Failed to get an IP from the router. Please check the connections."
-		#eerror "The system will reboot in 20 seconds."
-		#nohup bash -c 'reboot' &>/dev/null&
-		return 1
-	   fi
-	fi
-	   
-	sleep 1
+	# If net.${net_dev} is up through dhcp, we skip setting dhcp again and restarting net.${net_dev}
+	#if ! grep -q config_${net_dev}[[:space:]]*=[[:space:]]*"dhcp" /etc/conf.d/net.${net_dev}; then
+	#   if ! echo config_${net_dev}='"dhcp"' > /etc/conf.d/net.${net_dev} && /etc/init.d/net.${net_dev} restart; then
+	#	eerror "Failed to get an IP from the router. Please check the connections."
+	#	#eerror "The system will reboot in 20 seconds."
+	#	#nohup bash -c 'reboot' &>/dev/null&
+        #        return 1
+	#   fi
+	#fi
+
+	einfo "Restarting the network device. Please wait..."
+	echo config_${net_dev}='"dhcp"' > /etc/conf.d/net.${net_dev}
+	/etc/init.d/net.${net_dev} restart &> /dev/null
+		   
+        # We wait untill we get an IP (wlan0 takes time)
+	timeout=25
+	i=0
+	while ! [[ $(ifconfig | grep -A 1 ${net_dev} | tail -1 | awk '{print $2}') =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; do
+           sleep 1
+           let i++
+           if (( $i > $timeout )); then
+	      eerror "Check: failed to get an IP from the router. Please check the connections."
+	      return 1
+           fi
+        done
+
 	dnsaddr=`grep -i /etc/resolv.conf -e nameserver | awk '{print $2}'`
 	gateway=$(/bin/ip route | awk '/default/ { print $3 }')
-	ip_dhcp=`ifconfig | grep -A 1 'eth0' | tail -1 | awk '{print $2}'`
-	netmask=`ifconfig | grep -A 1 'eth0' | tail -1 | awk '{print $4}'`
+	ip_dhcp=`ifconfig | grep -A 1 ${net_dev} | tail -1 | awk '{print $2}'`
+	netmask=`ifconfig | grep -A 1 ${net_dev} | tail -1 | awk '{print $4}'`
 	if [ ${int_ip} == "auto" ]; then
 		 ip_static=${ip_dhcp%.*}.133
 	else
 		 last_octet=`echo $int_ip | cut -d . -f 4`
 		 ip_static=${ip_dhcp%.*}.$last_octet
 	fi
-	echo "config_eth0="'"'"$ip_static netmask $netmask"'"' > /etc/conf.d/net.eth0
-	echo "routes_eth0="'"'"default via $gateway"'"'>> /etc/conf.d/net.eth0
-	echo "dns_servers_eth0="'"'"$dnsaddr"'"' >> /etc/conf.d/net.eth0
+	echo "config_${net_dev}="'"'"$ip_static netmask $netmask"'"' > /etc/conf.d/net.${net_dev}
+	echo "routes_${net_dev}="'"'"default via $gateway"'"'>> /etc/conf.d/net.${net_dev}
+	echo "dns_servers_${net_dev}="'"'"$dnsaddr"'"' >> /etc/conf.d/net.${net_dev}
 
 	# sourcing parameters into rc.conf
 	/usr/local/bin/paramcopy
@@ -46,7 +61,12 @@ ip_setter() {
 	# wait for the chaos to settle down :))
 	sleep 1
 	
-	/etc/init.d/net.eth0 restart
+	einfo "Assigning the new IP..."
+	/etc/init.d/net.${net_dev} restart
+        # We wait untill we get an IP (wlan0 takes time)
+        while ! [[ $(ifconfig | grep -A 1 ${net_dev} | tail -1 | awk '{print $2}') =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; do
+           sleep 1
+        done
 
 	# we enable and start the services in /boot/storij/initlist again
 	list=`cat /boot/storij/initlist`
@@ -69,7 +89,7 @@ ip_setter() {
 	sed -i 's,^\([ ]*int_ip[ ]*=\).*,\1'$ip_static',g' /boot/storij/parameters.txt
 	
 	# Deleting ipsetter from the startup as the IP information is now fully
-	# written to /etc/conf.d/net.eth0 and we have started and enabled the services.
+	# written to /etc/conf.d/net.${net_dev} and we have started and enabled the services.
 	rc-update del ipsetter default
 
 	return 0
