@@ -1,25 +1,27 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
-AUTOTOOLS_AUTORECONF="yes"
-AUTOTOOLS_IN_SOURCE_BUILD="yes"
-
-inherit user autotools-utils systemd
+inherit autotools systemd
 
 DESCRIPTION="Export command line tools to a web based terminal emulator"
 HOMEPAGE="https://github.com/shellinabox/shellinabox"
-SRC_URI="https://github.com/${PN}/${PN}/archive/v${PV}.zip -> ${P}.zip"
+SRC_URI="https://github.com/${PN}/${PN}/archive/v${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="amd64 ppc ppc64 x86"
 IUSE="+pam"
 
+RDEPEND="
+	acct-user/shellinaboxd
+	acct-group/shellinaboxd"
+
 DEPEND="
+	${RDEPEND}
 	dev-libs/openssl:0=
-	pam? ( virtual/pam )"
+	pam? ( sys-libs/pam )"
 
 SIAB_CERT_DIR="/etc/shellinabox/cert"
 SIAB_SSL_BASH="${SIAB_CERT_DIR}/gen_ssl_cert.bash"
@@ -37,9 +39,9 @@ cat server.crt server.key > certificate.pem
 EOF
 }
 
-pkg_setup() {
-	enewgroup "${SIAB_DAEMON}"
-	enewuser "${SIAB_DAEMON}" -1 -1 -1 "${SIAB_DAEMON}"
+src_prepare() {
+	default
+	eautoreconf
 }
 
 src_configure() {
@@ -66,7 +68,7 @@ src_install() {
 	newinitd "${FILESDIR}/${SIAB_DAEMON}.init" "${SIAB_DAEMON}"
 	newconfd "${FILESDIR}/${SIAB_DAEMON}.conf" "${SIAB_DAEMON}"
 
-	# Install systemd unit files
+	# Install systemd unit file.
 	systemd_dounit "${FILESDIR}"/shellinaboxd.service
 
 	# Install CSS files.
@@ -75,7 +77,6 @@ src_install() {
 
 	# Create directory where SSL certificates will be generated.
 	dodir "${SIAB_CERT_DIR}"
-	fowners "${SIAB_DAEMON}:${SIAB_DAEMON}" "${SIAB_CERT_DIR}"
 
 	# Generate set up variable.
 	shellinbox_gen_ssl_setup
