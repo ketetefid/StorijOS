@@ -1,9 +1,6 @@
-https://bugs.gentoo.org/165444
-https://bugzilla.mindrot.org/show_bug.cgi?id=1008
-
---- a/auth.c
-+++ b/auth.c
-@@ -728,120 +728,6 @@ fakepw(void)
+--- a/auth.c	2021-03-02 04:31:47.000000000 -0600
++++ b/auth.c	2021-03-04 11:22:44.590041696 -0600
+@@ -727,119 +727,6 @@ fakepw(void)
  	return (&fake);
  }
  
@@ -30,9 +27,9 @@ https://bugzilla.mindrot.org/show_bug.cgi?id=1008
 -	fromlen = sizeof(from);
 -	memset(&from, 0, sizeof(from));
 -	if (getpeername(ssh_packet_get_connection_in(ssh),
--	    (struct sockaddr *)&from, &fromlen) < 0) {
+-	    (struct sockaddr *)&from, &fromlen) == -1) {
 -		debug("getpeername failed: %.100s", strerror(errno));
--		return strdup(ntop);
+-		return xstrdup(ntop);
 -	}
 -
 -	ipv64_normalise_mapped(&from, &fromlen);
@@ -44,7 +41,7 @@ https://bugzilla.mindrot.org/show_bug.cgi?id=1008
 -	if (getnameinfo((struct sockaddr *)&from, fromlen, name, sizeof(name),
 -	    NULL, 0, NI_NAMEREQD) != 0) {
 -		/* Host name not found.  Use ip address. */
--		return strdup(ntop);
+-		return xstrdup(ntop);
 -	}
 -
 -	/*
@@ -59,7 +56,7 @@ https://bugzilla.mindrot.org/show_bug.cgi?id=1008
 -		logit("Nasty PTR record \"%s\" is set up for %s, ignoring",
 -		    name, ntop);
 -		freeaddrinfo(ai);
--		return strdup(ntop);
+-		return xstrdup(ntop);
 -	}
 -
 -	/* Names are stored in lowercase. */
@@ -80,7 +77,7 @@ https://bugzilla.mindrot.org/show_bug.cgi?id=1008
 -	if (getaddrinfo(name, NULL, &hints, &aitop) != 0) {
 -		logit("reverse mapping checking getaddrinfo for %.700s "
 -		    "[%s] failed.", name, ntop);
--		return strdup(ntop);
+-		return xstrdup(ntop);
 -	}
 -	/* Look for the address from the list of addresses. */
 -	for (ai = aitop; ai; ai = ai->ai_next) {
@@ -95,9 +92,9 @@ https://bugzilla.mindrot.org/show_bug.cgi?id=1008
 -		/* Address not found for the host name. */
 -		logit("Address %.100s maps to %.600s, but this does not "
 -		    "map back to the address.", ntop, name);
--		return strdup(ntop);
+-		return xstrdup(ntop);
 -	}
--	return strdup(name);
+-	return xstrdup(name);
 -}
 -
 -/*
@@ -120,12 +117,11 @@ https://bugzilla.mindrot.org/show_bug.cgi?id=1008
 -		return dnsname;
 -	}
 -}
--
- /*
-  * Runs command in a subprocess wuth a minimal environment.
-  * Returns pid on success, 0 on failure.
---- a/canohost.c
-+++ b/canohost.c
+ 
+ /* These functions link key/cert options to the auth framework */
+ 
+--- a/canohost.c	2021-03-02 04:31:47.000000000 -0600
++++ b/canohost.c	2021-03-04 11:22:54.854211183 -0600
 @@ -202,3 +202,117 @@ get_local_port(int sock)
  {
  	return get_sock_port(sock, 1);
@@ -154,9 +150,9 @@ https://bugzilla.mindrot.org/show_bug.cgi?id=1008
 +	fromlen = sizeof(from);
 +	memset(&from, 0, sizeof(from));
 +	if (getpeername(ssh_packet_get_connection_in(ssh),
-+	    (struct sockaddr *)&from, &fromlen) < 0) {
++	    (struct sockaddr *)&from, &fromlen) == -1) {
 +		debug("getpeername failed: %.100s", strerror(errno));
-+		return strdup(ntop);
++		return xstrdup(ntop);
 +	}
 +
 +	ipv64_normalise_mapped(&from, &fromlen);
@@ -168,7 +164,7 @@ https://bugzilla.mindrot.org/show_bug.cgi?id=1008
 +	if (getnameinfo((struct sockaddr *)&from, fromlen, name, sizeof(name),
 +	    NULL, 0, NI_NAMEREQD) != 0) {
 +		/* Host name not found.  Use ip address. */
-+		return strdup(ntop);
++		return xstrdup(ntop);
 +	}
 +
 +	/*
@@ -183,7 +179,7 @@ https://bugzilla.mindrot.org/show_bug.cgi?id=1008
 +		logit("Nasty PTR record \"%s\" is set up for %s, ignoring",
 +		    name, ntop);
 +		freeaddrinfo(ai);
-+		return strdup(ntop);
++		return xstrdup(ntop);
 +	}
 +
 +	/* Names are stored in lowercase. */
@@ -204,7 +200,7 @@ https://bugzilla.mindrot.org/show_bug.cgi?id=1008
 +	if (getaddrinfo(name, NULL, &hints, &aitop) != 0) {
 +		logit("reverse mapping checking getaddrinfo for %.700s "
 +		    "[%s] failed.", name, ntop);
-+		return strdup(ntop);
++		return xstrdup(ntop);
 +	}
 +	/* Look for the address from the list of addresses. */
 +	for (ai = aitop; ai; ai = ai->ai_next) {
@@ -219,9 +215,9 @@ https://bugzilla.mindrot.org/show_bug.cgi?id=1008
 +		/* Address not found for the host name. */
 +		logit("Address %.100s maps to %.600s, but this does not "
 +		    "map back to the address.", ntop, name);
-+		return strdup(ntop);
++		return xstrdup(ntop);
 +	}
-+	return strdup(name);
++	return xstrdup(name);
 +}
 +
 +/*
@@ -244,17 +240,19 @@ https://bugzilla.mindrot.org/show_bug.cgi?id=1008
 +		return dnsname;
 +	}
 +}
+diff --git a/readconf.c b/readconf.c
+index 724974b7..97a1ffd8 100644
 --- a/readconf.c
 +++ b/readconf.c
-@@ -160,6 +160,7 @@ typedef enum {
+@@ -161,6 +161,7 @@ typedef enum {
  	oClearAllForwardings, oNoHostAuthenticationForLocalhost,
  	oEnableSSHKeysign, oRekeyLimit, oVerifyHostKeyDNS, oConnectTimeout,
  	oAddressFamily, oGssAuthentication, oGssDelegateCreds,
 +	oGssTrustDns,
  	oServerAliveInterval, oServerAliveCountMax, oIdentitiesOnly,
- 	oSendEnv, oControlPath, oControlMaster, oControlPersist,
+ 	oSendEnv, oSetEnv, oControlPath, oControlMaster, oControlPersist,
  	oHashKnownHosts,
-@@ -200,9 +201,11 @@ static struct {
+@@ -206,9 +207,11 @@ static struct {
  #if defined(GSSAPI)
  	{ "gssapiauthentication", oGssAuthentication },
  	{ "gssapidelegatecredentials", oGssDelegateCreds },
@@ -265,8 +263,8 @@ https://bugzilla.mindrot.org/show_bug.cgi?id=1008
 +	{ "gssapitrustdns", oUnsupported },
  #endif
  #ifdef ENABLE_PKCS11
- 	{ "smartcarddevice", oPKCS11Provider },
-@@ -954,6 +957,10 @@ parse_time:
+ 	{ "pkcs11provider", oPKCS11Provider },
+@@ -1083,6 +1086,10 @@ parse_time:
  		intptr = &options->gss_deleg_creds;
  		goto parse_flag;
  
@@ -277,7 +275,7 @@ https://bugzilla.mindrot.org/show_bug.cgi?id=1008
  	case oBatchMode:
  		intptr = &options->batch_mode;
  		goto parse_flag;
-@@ -1766,6 +1773,7 @@ initialize_options(Options * options)
+@@ -2183,6 +2190,7 @@ initialize_options(Options * options)
  	options->challenge_response_authentication = -1;
  	options->gss_authentication = -1;
  	options->gss_deleg_creds = -1;
@@ -285,7 +283,7 @@ https://bugzilla.mindrot.org/show_bug.cgi?id=1008
  	options->password_authentication = -1;
  	options->kbd_interactive_authentication = -1;
  	options->kbd_interactive_devices = NULL;
-@@ -1908,6 +1916,8 @@ fill_default_options(Options * options)
+@@ -2340,6 +2348,8 @@ fill_default_options(Options * options)
  		options->gss_authentication = 0;
  	if (options->gss_deleg_creds == -1)
  		options->gss_deleg_creds = 0;
@@ -294,9 +292,11 @@ https://bugzilla.mindrot.org/show_bug.cgi?id=1008
  	if (options->password_authentication == -1)
  		options->password_authentication = 1;
  	if (options->kbd_interactive_authentication == -1)
+diff --git a/readconf.h b/readconf.h
+index 2fba866e..da3ce87a 100644
 --- a/readconf.h
 +++ b/readconf.h
-@@ -43,6 +43,7 @@ typedef struct {
+@@ -42,6 +42,7 @@ typedef struct {
  					/* Try S/Key or TIS, authentication. */
  	int     gss_authentication;	/* Try GSS authentication */
  	int     gss_deleg_creds;	/* Delegate GSS credentials */
@@ -304,9 +304,11 @@ https://bugzilla.mindrot.org/show_bug.cgi?id=1008
  	int     password_authentication;	/* Try password
  						 * authentication. */
  	int     kbd_interactive_authentication; /* Try keyboard-interactive auth. */
+diff --git a/ssh_config.5 b/ssh_config.5
+index f8119189..e0fd0d76 100644
 --- a/ssh_config.5
 +++ b/ssh_config.5
-@@ -731,6 +731,16 @@ The default is
+@@ -783,6 +783,16 @@ The default is
  Forward (delegate) credentials to the server.
  The default is
  .Cm no .
@@ -323,29 +325,30 @@ https://bugzilla.mindrot.org/show_bug.cgi?id=1008
  .It Cm HashKnownHosts
  Indicates that
  .Xr ssh 1
+diff --git a/sshconnect2.c b/sshconnect2.c
+index 059c9480..ab6f6832 100644
 --- a/sshconnect2.c
 +++ b/sshconnect2.c
-@@ -643,6 +643,13 @@ userauth_gssapi(Authctxt *authctxt)
- 	static u_int mech = 0;
+@@ -770,6 +770,13 @@ userauth_gssapi(struct ssh *ssh)
  	OM_uint32 min;
- 	int ok = 0;
+ 	int r, ok = 0;
+ 	gss_OID mech = NULL;
 +	const char *gss_host;
 +
 +	if (options.gss_trust_dns) {
 +		extern const char *auth_get_canonical_hostname(struct ssh *ssh, int use_dns);
-+		gss_host = auth_get_canonical_hostname(active_state, 1);
++		gss_host = auth_get_canonical_hostname(ssh, 1);
 +	} else
 +		gss_host = authctxt->host;
  
  	/* Try one GSSAPI method at a time, rather than sending them all at
  	 * once. */
-@@ -655,7 +662,7 @@ userauth_gssapi(Authctxt *authctxt)
+@@ -784,7 +791,7 @@ userauth_gssapi(struct ssh *ssh)
+ 		    elements[authctxt->mech_tried];
  		/* My DER encoding requires length<128 */
- 		if (gss_supported->elements[mech].length < 128 &&
- 		    ssh_gssapi_check_mechanism(&gssctxt, 
--		    &gss_supported->elements[mech], authctxt->host)) {
-+		    &gss_supported->elements[mech], gss_host)) {
+ 		if (mech->length < 128 && ssh_gssapi_check_mechanism(&gssctxt,
+-		    mech, authctxt->host)) {
++		    mech, gss_host)) {
  			ok = 1; /* Mechanism works */
  		} else {
- 			mech++;
--- 
+ 			authctxt->mech_tried++;
