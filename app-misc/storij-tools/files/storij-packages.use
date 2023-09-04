@@ -5,3 +5,4 @@ net-misc/openssh -hpn X509
 dev-lang/php pdo curl
 net-wireless/wpa_supplicant gnutls
 dev-java/icedtea-bin -cups
+sys-devel/binutils gold

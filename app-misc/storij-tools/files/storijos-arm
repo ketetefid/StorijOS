@@ -1,4 +1,4 @@
 @storijos
 sys-firmware/b43-firmware
 sys-firmware/bluez-firmware
-media-libs/raspberrypi-userland::storij
+media-libs/raspberrypi-userland

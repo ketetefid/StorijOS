@@ -15,11 +15,11 @@ app-portage/eix
 app-portage/euses
 app-portage/genlop
 app-portage/gentoolkit
-app-portage/layman
+#app-portage/layman
 app-portage/mirrorselect
 app-text/wgetpaste
 dev-lang/go
-dev-lang/php:7.1::storij
+dev-lang/php::storij
 dev-libs/elfutils
 dev-tcltk/expect
 dev-util/strace
@@ -61,7 +61,6 @@ sys-devel/bc
 sys-devel/distcc
 sys-fs/btrfs-progs
 sys-fs/dosfstools
-sys-fs/eudev
 sys-fs/fuse
 sys-fs/mdadm
 sys-fs/multipath-tools
@@ -70,7 +69,7 @@ sys-kernel/linux-firmware
 sys-process/cronie::storij
 sys-process/htop
 sys-process/iotop
-virtual/httpd-php:7.1
+#virtual/httpd-php:7.1
 www-misc/shellinabox::storij
 www-servers/apache::storij
 

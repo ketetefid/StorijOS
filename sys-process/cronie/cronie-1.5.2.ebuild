@@ -1,9 +1,9 @@
 # Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
-inherit autotools cron flag-o-matic pam systemd user
+inherit autotools cron flag-o-matic pam systemd
 
 DESCRIPTION="Cronie is a standard UNIX daemon cron based on the original vixie-cron"
 HOMEPAGE="https://github.com/cronie-crond/cronie"
@@ -22,7 +22,7 @@ RDEPEND="${DEPEND}
 
 #cronie supports /etc/crontab
 CRON_SYSTEM_CRONTAB="yes"
-
+SLOT="0"
 S="${WORKDIR}/${PN}-${P}"
 
 PATCHES=(

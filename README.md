@@ -40,7 +40,7 @@ done
 
 To get miniupnpd ready, if this is from a new Gentoo installation, ```touch /var/lib/iptables/rules-save```. Finally, fetch the latest WebUI by issuing ```update-webui```.
 
-Restart the machine and then you would be able to view the WebUI at ```http://storijos.local``` from a locally connected device and start hosting. Remember that in order to access the WebUI, your machine must support mDNS like MacOS. If you are in Linux, enable and start avahi daemon. If you are in Windows, install [Bonjour Print Services](https://support.apple.com/kb/dl999?locale=en_US).
+Restart the machine and then you would be able to view the WebUI at ```http://storijos.local``` from a locally connected device and start hosting. Remember that in order to access the WebUI, your machine must support mDNS like MacOS. If you are in Linux, enable and start avahi daemon. If you are in Windows, install [Bonjour Print Services](https://support.apple.com/kb/dl999?locale=en_US). Use Google Chrome or a Chrome based browser.
 From your Android phone, you will need to enter the IP addresses manually.
 
 ### Note

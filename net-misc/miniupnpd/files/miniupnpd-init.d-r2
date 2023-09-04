@@ -13,19 +13,7 @@ depend() {
 }
 
 start_pre() {
-
-NetRange=$(whatmask $(ifconfig | grep -A 1 "$net_dev" | tail -1 | awk '{print $2}')/$(ifconfig | grep -A 1 "$net_dev" | tail -1 | awk '{print $4}') | grep 'Network Address' | awk '{ print $5  }')$(whatmask $(ifconfig | grep -A 1 "$net_dev" | tail -1 | awk '{print $2}')/$(ifconfig | grep -A 1 "$net_dev" | tail -1 | awk '{print $4}') | grep 'CIDR' | awk '{ print $4  }')
-
-	sed -i "/^#A#marker$/,/^#B#marker$/ {
-	//!d
-	/^#A#marker$/a\
-	allow $xsc_host_port $NetRange $xsc_host_port\\
-allow $xsc_rpc_port $NetRange $xsc_rpc_port\\
-allow $sc_host_port $NetRange $sc_host_port\\
-allow $sc_rpc_port $NetRange $sc_rpc_port
-	}" /etc/miniupnpd/miniupnpd.conf
-
-	    local retval=0
+	local retval=0
 
 	if [ -n "${iptables_scripts}" ]; then
 		/etc/miniupnpd/iptables_init.sh || retval=${?}
