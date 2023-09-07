@@ -55,4 +55,4 @@ Please see the quick start guide at https://storij.net/How-To-Setup/.
 
 ## Bugs and Suggestions
 
-If a piece of software does not run properly or as intended, please submit a bug in this repository. If you need general support or have any questions, please create a thread in our Reddit channel, [/r/Storij](https://www.reddit.com/r/Storij/). You may also join https://t.me/storij Telegram group for a discussion. However, if you are seeking technical help, please choose Reddit as your question and the answers can remain for further reference.
+If a piece of software does not run properly or as intended, please submit a bug in this repository. If you need general support or have any questions, please create a thread in our Reddit channel, [/r/Storij](https://www.reddit.com/r/Storij/).
